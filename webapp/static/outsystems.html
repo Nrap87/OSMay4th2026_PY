@@ -70,8 +70,24 @@
     </div>
   </div>
 
+  <div id="run-overlay" class="run-overlay hidden" aria-hidden="true">
+    <div class="run-overlay-panel">
+      <div class="run-overlay-head">
+        <span class="run-spinner" id="run-spinner"></span>
+        <h3 id="run-overlay-title">Running</h3>
+        <p id="run-overlay-status" class="run-status">Starting…</p>
+      </div>
+      <pre id="run-log" class="run-log"></pre>
+      <div id="run-dump-wrap" class="run-dump-wrap hidden">
+        <h4>Result JSON (dump)</h4>
+        <pre id="run-dump" class="run-dump"></pre>
+      </div>
+      <button type="button" id="run-dismiss" class="primary run-dismiss" disabled>Close</button>
+    </div>
+  </div>
+
   <footer class="foot">
-    <p>API: <code>/api/outsystems/status</code>, <code>POST /refresh</code>, <code>POST /challenges/{id}/run?submit=…</code>, <code>POST /submit-all</code></p>
+    <p>API: streaming <code>POST …/run/stream</code>, <code>POST …/submit-all/stream</code> (SSE) plus non-stream variants.</p>
   </footer>
 
   <script src="/assets/outsystems.js"></script>

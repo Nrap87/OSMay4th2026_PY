@@ -264,3 +264,118 @@ button.danger {
   font-size: 0.85rem;
   margin-top: 2rem;
 }
+
+body.run-locked {
+  overflow: hidden;
+}
+
+.run-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.run-overlay-panel {
+  width: min(920px, 100%);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.run-overlay-head {
+  flex-shrink: 0;
+  margin-bottom: 0.65rem;
+}
+
+.run-overlay-head h3 {
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.run-status {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.run-spinner {
+  display: inline-block;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: run-spin 0.75s linear infinite;
+}
+
+.run-spinner.hidden {
+  display: none;
+}
+
+@keyframes run-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.run-log {
+  flex: 1;
+  min-height: 180px;
+  max-height: 48vh;
+  overflow: auto;
+  margin: 0 0 0.75rem;
+  padding: 0.65rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.run-dump-wrap {
+  margin-bottom: 0.75rem;
+}
+
+.run-dump-wrap h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.run-dump {
+  max-height: 22vh;
+  overflow: auto;
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.75rem;
+}
+
+.run-dismiss {
+  align-self: flex-end;
+  min-width: 7rem;
+}
+
+.run-dismiss:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

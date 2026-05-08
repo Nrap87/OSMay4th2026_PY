@@ -19,6 +19,112 @@ function hideModal() {
   $("modal").classList.add("hidden");
 }
 
+function setRunLock(on) {
+  document.body.classList.toggle("run-locked", on);
+  document.querySelectorAll(".btn-solve, #btn-submit-all").forEach((b) => {
+    b.disabled = on;
+  });
+}
+
+function showRunOverlay(title) {
+  $("run-overlay").classList.remove("hidden");
+  $("run-overlay").setAttribute("aria-hidden", "false");
+  $("run-overlay-title").textContent = title;
+  $("run-overlay-status").textContent = "Running… output streams below.";
+  $("run-log").textContent = "";
+  $("run-dump").textContent = "";
+  $("run-dump-wrap").classList.add("hidden");
+  $("run-dismiss").disabled = true;
+  $("run-spinner").classList.remove("hidden");
+  setRunLock(true);
+}
+
+function scrollRunLog() {
+  const el = $("run-log");
+  el.scrollTop = el.scrollHeight;
+}
+
+function finishRunOverlay(ok, exitCode) {
+  $("run-spinner").classList.add("hidden");
+  $("run-dismiss").disabled = false;
+  $("run-overlay-status").textContent = ok
+    ? `Finished (exit code ${exitCode}). Review output, then Close.`
+    : `Finished with errors (exit code ${exitCode}). Review output, then Close.`;
+  scrollRunLog();
+}
+
+function hideRunOverlay() {
+  $("run-overlay").classList.add("hidden");
+  $("run-overlay").setAttribute("aria-hidden", "true");
+  setRunLock(false);
+}
+
+/**
+ * POST and read text/event-stream: JSON lines after "data: ".
+ */
+async function streamSolver(url, body) {
+  const headers = { Accept: "text/event-stream" };
+  if (body != null) {
+    headers["Content-Type"] = "application/json";
+  }
+  const res = await fetch(url, {
+    method: "POST",
+    headers,
+    body: body != null ? JSON.stringify(body) : undefined,
+  });
+
+  if (!res.ok) {
+    const t = await res.text();
+    let detail = t;
+    try {
+      const j = JSON.parse(t);
+      detail = j.detail != null ? JSON.stringify(j.detail) : t;
+    } catch {
+      /* keep text */
+    }
+    throw new Error(`${res.status} ${res.statusText}\n${detail}`);
+  }
+
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "";
+  let exitCode = null;
+  let dump = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let sep;
+    while ((sep = buf.indexOf("\n\n")) >= 0) {
+      const block = buf.slice(0, sep);
+      buf = buf.slice(sep + 2);
+      for (const line of block.split("\n")) {
+        if (!line.startsWith("data: ")) continue;
+        let ev;
+        try {
+          ev = JSON.parse(line.slice(6));
+        } catch {
+          $("run-log").textContent += `\n[parse error] ${line}\n`;
+          continue;
+        }
+        if (ev.type === "line") {
+          $("run-log").textContent += ev.text + "\n";
+          scrollRunLog();
+        } else if (ev.type === "error") {
+          $("run-log").textContent += `\n[error] ${ev.message}\n`;
+          scrollRunLog();
+        } else if (ev.type === "done") {
+          exitCode = ev.exit_code;
+          dump = ev.dump;
+        }
+      }
+    }
+  }
+
+  return { exitCode: exitCode ?? -1, dump };
+}
+
 async function loadStatus() {
   const res = await fetch("/api/outsystems/status");
   const { ok, body } = await parseJsonRes(res);
@@ -118,7 +224,7 @@ function renderCards(challenges) {
         alert("Missing ChallengeId");
         return;
       }
-      runChallenge(Number(cid), btn.dataset.submit === "true", btn);
+      runChallengeStream(Number(cid), btn.dataset.submit === "true");
     });
   });
 }
@@ -131,26 +237,29 @@ function escapeHtml(s) {
     .replace(/"/g, "&quot;");
 }
 
-async function runChallenge(challengeId, submit, btn) {
+async function runChallengeStream(challengeId, submit) {
   const label = submit ? "Solve & submit" : "Solve";
-  btn.disabled = true;
+  showRunOverlay(`${label} — Challenge ${challengeId}`);
   try {
     const q = submit ? "?submit=true" : "?submit=false";
-    const res = await fetch(
-      `/api/outsystems/challenges/${challengeId}/run${q}`,
-      { method: "POST" }
+    const { exitCode, dump } = await streamSolver(
+      `/api/outsystems/challenges/${challengeId}/run/stream${q}`,
+      null
     );
-    const { body } = await parseJsonRes(res);
-    const text = JSON.stringify(body, null, 2);
-    showModal(`${label} — Challenge ${challengeId}`, text);
+    if (dump != null) {
+      $("run-dump-wrap").classList.remove("hidden");
+      $("run-dump").textContent = JSON.stringify(dump, null, 2);
+    }
+    finishRunOverlay(exitCode === 0, exitCode);
   } catch (e) {
-    showModal("Error", String(e));
-  } finally {
-    btn.disabled = false;
+    $("run-log").textContent += `\n${String(e)}\n`;
+    $("run-spinner").classList.add("hidden");
+    $("run-dismiss").disabled = false;
+    $("run-overlay-status").textContent = "Request failed — see log.";
   }
 }
 
-async function submitAll() {
+async function submitAllStream() {
   const n = parseInt($("parallel-all").value, 10) || 6;
   if (
     !confirm(
@@ -159,29 +268,28 @@ async function submitAll() {
   ) {
     return;
   }
-  $("btn-submit-all").disabled = true;
+  showRunOverlay("Submit all challenges");
   try {
-    const res = await fetch("/api/outsystems/submit-all", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ parallel: n }),
+    const { exitCode } = await streamSolver("/api/outsystems/submit-all/stream", {
+      parallel: n,
     });
-    const { body } = await parseJsonRes(res);
-    showModal("Submit all — result", JSON.stringify(body, null, 2));
+    finishRunOverlay(exitCode === 0, exitCode);
   } catch (e) {
-    showModal("Error", String(e));
-  } finally {
-    $("btn-submit-all").disabled = false;
+    $("run-log").textContent += `\n${String(e)}\n`;
+    $("run-spinner").classList.add("hidden");
+    $("run-dismiss").disabled = false;
+    $("run-overlay-status").textContent = "Request failed — see log.";
   }
 }
 
 $("creds-form").addEventListener("submit", saveCreds);
 $("btn-clear-session").addEventListener("click", clearSession);
 $("btn-refresh").addEventListener("click", refreshMap);
-$("btn-submit-all").addEventListener("click", submitAll);
+$("btn-submit-all").addEventListener("click", submitAllStream);
 $("modal-close").addEventListener("click", hideModal);
 $("modal").addEventListener("click", (ev) => {
   if (ev.target === $("modal")) hideModal();
 });
+$("run-dismiss").addEventListener("click", hideRunOverlay);
 
 loadStatus();

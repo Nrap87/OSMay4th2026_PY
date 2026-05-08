@@ -15,6 +15,7 @@ from urllib import request
 from urllib.error import HTTPError, URLError
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -125,6 +126,7 @@ def _child_env() -> dict[str, str]:
     if e:
         env["PLAYER_EMAIL"] = e
     env["STAR_DELIVERY_BASE_URL"] = base
+    env["PYTHONUNBUFFERED"] = "1"
     return env
 
 
@@ -267,8 +269,70 @@ def api_refresh():
     }
 
 
+def _encode_sse(event: dict) -> bytes:
+    return f"data: {json.dumps(event, ensure_ascii=False)}\n\n".encode("utf-8")
+
+
+def _stream_headers() -> dict[str, str]:
+    return {
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no",
+    }
+
+
+def _stream_tsp_stdout(
+    args: list[str],
+    read_dump_path: str | None = None,
+):
+    """Yield SSE chunks: {type:'line', text}, optional {type:'error'}, final {type:'done', exit_code, dump}."""
+    cmd = [sys.executable, "-u", str(ROOT / "tsp_solver.py"), *args]
+    proc: subprocess.Popen | None = None
+    rc = -1
+    try:
+        proc = subprocess.Popen(
+            cmd,
+            cwd=str(ROOT),
+            env=_child_env(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            bufsize=1,
+        )
+        if proc.stdout is None:
+            raise RuntimeError("subprocess stdout not available")
+        for line in proc.stdout:
+            yield _encode_sse({"type": "line", "text": line.rstrip("\r\n")})
+        rc = proc.wait()
+    except Exception as exc:
+        if proc is not None and proc.poll() is None:
+            try:
+                proc.kill()
+            except OSError:
+                pass
+        yield _encode_sse({"type": "error", "message": str(exc)})
+        rc = -1
+
+    dump: dict | None = None
+    if read_dump_path:
+        try:
+            if os.path.isfile(read_dump_path):
+                with open(read_dump_path, encoding="utf-8") as f:
+                    dump = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            pass
+        try:
+            os.unlink(read_dump_path)
+        except OSError:
+            pass
+
+    yield _encode_sse({"type": "done", "exit_code": rc, "dump": dump})
+
+
 def _run_tsp_solver(args: list[str], timeout_sec: int = 7200) -> dict:
-    cmd = [sys.executable, str(ROOT / "tsp_solver.py"), *args]
+    cmd = [sys.executable, "-u", str(ROOT / "tsp_solver.py"), *args]
     try:
         proc = subprocess.run(
             cmd,
@@ -342,3 +406,45 @@ def api_submit_all(body: SubmitAllBody):
         "0",
     ]
     return _run_tsp_solver(args)
+
+
+@router.post("/challenges/{challenge_id}/run/stream")
+def api_run_challenge_stream(challenge_id: int, submit: bool = False):
+    _api_headers()
+    fd, dump_path = tempfile.mkstemp(suffix=".json", prefix="tsp_dump_")
+    os.close(fd)
+    args = [
+        "--from-api",
+        f"--challenge-id={challenge_id}",
+        "--log-interval",
+        "0",
+        "--dump-result",
+        dump_path,
+    ]
+    if submit:
+        args.append("--submit")
+
+    return StreamingResponse(
+        _stream_tsp_stdout(args, read_dump_path=dump_path),
+        media_type="text/event-stream",
+        headers=_stream_headers(),
+    )
+
+
+@router.post("/submit-all/stream")
+def api_submit_all_stream(body: SubmitAllBody):
+    _api_headers()
+    args = [
+        "--from-api",
+        "--all-challenges",
+        "--parallel",
+        str(body.parallel),
+        "--submit",
+        "--log-interval",
+        "0",
+    ]
+    return StreamingResponse(
+        _stream_tsp_stdout(args, read_dump_path=None),
+        media_type="text/event-stream",
+        headers=_stream_headers(),
+    )
