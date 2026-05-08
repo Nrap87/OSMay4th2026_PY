@@ -1,0 +1,428 @@
+{"routes":[
+    {
+      "from_planet": 144,
+      "to_planet_id": 171,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 171,
+      "to_planet_id": 172,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 30,
+      "to_planet_id": 29,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 185,
+      "to_planet_id": 80,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 75,
+      "to_planet_id": 185,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 184,
+      "to_planet_id": 75,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 44,
+      "to_planet_id": 184,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 29,
+      "to_planet_id": 44,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 1,
+      "to_planet_id": 3,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 3,
+      "to_planet_id": 10,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 10,
+      "to_planet_id": 31,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 31,
+      "to_planet_id": 30,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 156,
+      "to_planet_id": 157,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 28,
+      "to_planet_id": 37,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 37,
+      "to_planet_id": 45,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 45,
+      "to_planet_id": 52,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 52,
+      "to_planet_id": 156,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 157,
+      "to_planet_id": 154,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 3,
+      "to_planet_id": 178,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 178,
+      "to_planet_id": 28,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 179,
+      "to_planet_id": 172,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 172,
+      "to_planet_id": 105,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 105,
+      "to_planet_id": 180,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 180,
+      "to_planet_id": 133,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 64,
+      "to_planet_id": 179,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 57,
+      "to_planet_id": 181,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 41,
+      "to_planet_id": 48,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 48,
+      "to_planet_id": 57,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 191,
+      "to_planet_id": 154,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 140,
+      "to_planet_id": 132,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 132,
+      "to_planet_id": 143,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 143,
+      "to_planet_id": 144,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 144,
+      "to_planet_id": 99,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 99,
+      "to_planet_id": 51,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 51,
+      "to_planet_id": 50,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 50,
+      "to_planet_id": 8,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 8,
+      "to_planet_id": 16,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 16,
+      "to_planet_id": 183,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 183,
+      "to_planet_id": 44,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 44,
+      "to_planet_id": 189,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 189,
+      "to_planet_id": 190,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 190,
+      "to_planet_id": 59,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 59,
+      "to_planet_id": 93,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 93,
+      "to_planet_id": 191,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 74,
+      "to_planet_id": 177,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 47,
+      "to_planet_id": 74,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 176,
+      "to_planet_id": 47,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 175,
+      "to_planet_id": 176,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 1,
+      "to_planet_id": 175,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 33,
+      "to_planet_id": 54,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 54,
+      "to_planet_id": 53,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 53,
+      "to_planet_id": 182,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 183,
+      "to_planet_id": 33,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 43,
+      "to_planet_id": 76,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 6,
+      "to_planet_id": 43,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 5,
+      "to_planet_id": 6,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 7,
+      "to_planet_id": 5,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 1,
+      "to_planet_id": 7,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 77,
+      "to_planet_id": 145,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 173,
+      "to_planet_id": 77,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 76,
+      "to_planet_id": 173,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 188,
+      "to_planet_id": 92,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 92,
+      "to_planet_id": 93,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 93,
+      "to_planet_id": 119,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 119,
+      "to_planet_id": 117,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 117,
+      "to_planet_id": 85,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 85,
+      "to_planet_id": 102,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 13,
+      "to_planet_id": 35,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 35,
+      "to_planet_id": 23,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 23,
+      "to_planet_id": 36,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 36,
+      "to_planet_id": 37,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 37,
+      "to_planet_id": 188,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 122,
+      "to_planet_id": 129,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 149,
+      "to_planet_id": 128,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 128,
+      "to_planet_id": 141,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 141,
+      "to_planet_id": 126,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 126,
+      "to_planet_id": 125,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 125,
+      "to_planet_id": 78,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 78,
+      "to_planet_id": 174,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 173,
+      "to_planet_id": 123,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 123,
+      "to_planet_id": 122,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 129,
+      "to_planet_id": 149,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 46,
+      "to_planet_id": 56,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 51,
+      "to_planet_id": 46,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 56,
+      "to_planet_id": 76,
+      "route_type": "Other Route"
+    }
+  ]
+}

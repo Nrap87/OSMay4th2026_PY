@@ -1,0 +1,12 @@
+{
+  "startPlanetId": 10,
+  "mandatoryPlanetIds": [101, 174],
+  "forbiddenPlanetIds": [45, 29, 157],
+  "bonusStops": [
+    { "planetId": 182, "value": 200 },
+    { "planetId": 53, "value": 200 },
+    { "planetId": 33, "value": 150 },
+	{ "planetId": 54, "value": 150 },
+	{ "planetId": 183, "value": 100 }
+  ]
+}

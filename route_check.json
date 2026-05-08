@@ -1,0 +1,5 @@
+{
+  "route": [10,183,33,54,53,182,174,59,93,191,154,101,157,156,52,45,37,28,178,3,10],
+  "challengeId": 83,
+  "_comment": "Set route to your sequence. challengeId is optional here; use --challenge-id for API."
+}

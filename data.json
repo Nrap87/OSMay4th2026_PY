@@ -1,0 +1,1595 @@
+{
+  "planets": [
+    {
+      "id": 1,
+      "name": "Coruscant",
+      "x": 1313,
+      "y": 1309
+    },
+    {
+      "id": 2,
+      "name": "Alderaan",
+      "x": 1505,
+      "y": 1320
+    },
+    {
+      "id": 3,
+      "name": "Corellia",
+      "x": 1542,
+      "y": 1585
+    },
+    {
+      "id": 4,
+      "name": "Kuat",
+      "x": 1589,
+      "y": 1396
+    },
+    {
+      "id": 5,
+      "name": "Chandrila",
+      "x": 1392,
+      "y": 1259
+    },
+    {
+      "id": 6,
+      "name": "Brentaal",
+      "x": 1403,
+      "y": 1254
+    },
+    {
+      "id": 7,
+      "name": "Corulag",
+      "x": 1383,
+      "y": 1267
+    },
+    {
+      "id": 8,
+      "name": "Skako",
+      "x": 1419,
+      "y": 1291
+    },
+    {
+      "id": 9,
+      "name": "Salliche",
+      "x": 1260,
+      "y": 1336
+    },
+    {
+      "id": 10,
+      "name": "Nubia",
+      "x": 1557,
+      "y": 1602
+    },
+    {
+      "id": 11,
+      "name": "Gatalenta",
+      "x": 1579,
+      "y": 1456
+    },
+    {
+      "id": 12,
+      "name": "Rendili",
+      "x": 1552,
+      "y": 1517
+    },
+    {
+      "id": 13,
+      "name": "Abregado",
+      "x": 1310,
+      "y": 1774
+    },
+    {
+      "id": 14,
+      "name": "Trellen",
+      "x": 1376,
+      "y": 1339
+    },
+    {
+      "id": 15,
+      "name": "Byss",
+      "x": 1245,
+      "y": 1575
+    },
+    {
+      "id": 16,
+      "name": "Fedalle",
+      "x": 1511,
+      "y": 1388
+    },
+    {
+      "id": 17,
+      "name": "Nacon",
+      "x": 1316,
+      "y": 1357
+    },
+    {
+      "id": 18,
+      "name": "Khomm",
+      "x": 1327,
+      "y": 1684
+    },
+    {
+      "id": 19,
+      "name": "Constancia",
+      "x": 1294,
+      "y": 1658
+    },
+    {
+      "id": 20,
+      "name": "Carida",
+      "x": 1536,
+      "y": 1225
+    },
+    {
+      "id": 21,
+      "name": "Fondor",
+      "x": 1354,
+      "y": 1852
+    },
+    {
+      "id": 22,
+      "name": "Devaron",
+      "x": 1491,
+      "y": 1855
+    },
+    {
+      "id": 23,
+      "name": "Ghorman",
+      "x": 1356,
+      "y": 1896
+    },
+    {
+      "id": 24,
+      "name": "Castell",
+      "x": 1521,
+      "y": 1192
+    },
+    {
+      "id": 25,
+      "name": "Hok",
+      "x": 1574,
+      "y": 1255
+    },
+    {
+      "id": 26,
+      "name": "Cato Neimoidia",
+      "x": 1631,
+      "y": 1510
+    },
+    {
+      "id": 27,
+      "name": "Hynestia",
+      "x": 1160,
+      "y": 1870
+    },
+    {
+      "id": 28,
+      "name": "Bestine",
+      "x": 1466,
+      "y": 1913
+    },
+    {
+      "id": 29,
+      "name": "Byblos",
+      "x": 1593,
+      "y": 1697
+    },
+    {
+      "id": 30,
+      "name": "Loronar",
+      "x": 1584,
+      "y": 1674
+    },
+    {
+      "id": 31,
+      "name": "Tinnel",
+      "x": 1562,
+      "y": 1624
+    },
+    {
+      "id": 32,
+      "name": "Commenor",
+      "x": 1654,
+      "y": 1452
+    },
+    {
+      "id": 33,
+      "name": "Antar",
+      "x": 1728,
+      "y": 1617
+    },
+    {
+      "id": 34,
+      "name": "Bardotta",
+      "x": 1247,
+      "y": 1812
+    },
+    {
+      "id": 35,
+      "name": "Giju",
+      "x": 1317,
+      "y": 1830
+    },
+    {
+      "id": 36,
+      "name": "Thyferra",
+      "x": 1410,
+      "y": 1960
+    },
+    {
+      "id": 37,
+      "name": "Yag'Dhul",
+      "x": 1438,
+      "y": 2024
+    },
+    {
+      "id": 38,
+      "name": "Kiffex",
+      "x": 1364,
+      "y": 1951
+    },
+    {
+      "id": 39,
+      "name": "Onderon",
+      "x": 1859,
+      "y": 1288
+    },
+    {
+      "id": 40,
+      "name": "Hapes",
+      "x": 1828,
+      "y": 1233
+    },
+    {
+      "id": 41,
+      "name": "Zeltros",
+      "x": 1832,
+      "y": 1412
+    },
+    {
+      "id": 42,
+      "name": "Arkania",
+      "x": 1474,
+      "y": 1164
+    },
+    {
+      "id": 43,
+      "name": "Tirahnn",
+      "x": 1687,
+      "y": 1138
+    },
+    {
+      "id": 44,
+      "name": "Denon",
+      "x": 1647,
+      "y": 1770
+    },
+    {
+      "id": 45,
+      "name": "Roona",
+      "x": 1394,
+      "y": 2112
+    },
+    {
+      "id": 46,
+      "name": "Obroa-skai",
+      "x": 1744,
+      "y": 1055
+    },
+    {
+      "id": 47,
+      "name": "Dorin",
+      "x": 1108,
+      "y": 1033
+    },
+    {
+      "id": 48,
+      "name": "Umbara",
+      "x": 1913,
+      "y": 1344
+    },
+    {
+      "id": 49,
+      "name": "Shili",
+      "x": 1419,
+      "y": 1035
+    },
+    {
+      "id": 50,
+      "name": "Bogden",
+      "x": 1468,
+      "y": 1054
+    },
+    {
+      "id": 51,
+      "name": "Corsin",
+      "x": 1594,
+      "y": 966
+    },
+    {
+      "id": 52,
+      "name": "Kinyen",
+      "x": 1326,
+      "y": 2182
+    },
+    {
+      "id": 53,
+      "name": "Mimban",
+      "x": 1860,
+      "y": 1605
+    },
+    {
+      "id": 54,
+      "name": "Gyndine",
+      "x": 1771,
+      "y": 1637
+    },
+    {
+      "id": 55,
+      "name": "Vendaxa",
+      "x": 1782,
+      "y": 1976
+    },
+    {
+      "id": 56,
+      "name": "Contruum",
+      "x": 1897,
+      "y": 1104
+    },
+    {
+      "id": 57,
+      "name": "Kashyyyk",
+      "x": 2006,
+      "y": 1299
+    },
+    {
+      "id": 58,
+      "name": "Naboo",
+      "x": 1802,
+      "y": 2342
+    },
+    {
+      "id": 59,
+      "name": "Malastare",
+      "x": 1616,
+      "y": 2310
+    },
+    {
+      "id": 60,
+      "name": "Ithor",
+      "x": 1475,
+      "y": 843
+    },
+    {
+      "id": 61,
+      "name": "Bothawui",
+      "x": 2224,
+      "y": 1944
+    },
+    {
+      "id": 62,
+      "name": "Ruusan",
+      "x": 2035,
+      "y": 1462
+    },
+    {
+      "id": 63,
+      "name": "Haruun Kal",
+      "x": 1569,
+      "y": 2355
+    },
+    {
+      "id": 64,
+      "name": "Ord Mantell",
+      "x": 1317,
+      "y": 939
+    },
+    {
+      "id": 65,
+      "name": "Nal Hutta",
+      "x": 2350,
+      "y": 1612
+    },
+    {
+      "id": 66,
+      "name": "Nar Kaaga",
+      "x": 2345,
+      "y": 1796
+    },
+    {
+      "id": 67,
+      "name": "Toydaria",
+      "x": 2293,
+      "y": 1564
+    },
+    {
+      "id": 68,
+      "name": "Bimmisaari",
+      "x": 2304,
+      "y": 1189
+    },
+    {
+      "id": 69,
+      "name": "Cerea",
+      "x": 965,
+      "y": 2277
+    },
+    {
+      "id": 70,
+      "name": "Iridonia",
+      "x": 1147,
+      "y": 883
+    },
+    {
+      "id": 71,
+      "name": "Ando",
+      "x": 2082,
+      "y": 2181
+    },
+    {
+      "id": 72,
+      "name": "Dressel",
+      "x": 2158,
+      "y": 1863
+    },
+    {
+      "id": 73,
+      "name": "Tibrin",
+      "x": 1434,
+      "y": 2484
+    },
+    {
+      "id": 74,
+      "name": "Glee Anselm",
+      "x": 1053,
+      "y": 963
+    },
+    {
+      "id": 75,
+      "name": "New Cov",
+      "x": 1908,
+      "y": 2041
+    },
+    {
+      "id": 76,
+      "name": "Gizer",
+      "x": 1911,
+      "y": 1140
+    },
+    {
+      "id": 77,
+      "name": "Anaxes",
+      "x": 2250,
+      "y": 912
+    },
+    {
+      "id": 78,
+      "name": "Tatooine",
+      "x": 2242,
+      "y": 2296
+    },
+    {
+      "id": 79,
+      "name": "Geonosis",
+      "x": 2251,
+      "y": 2303
+    },
+    {
+      "id": 80,
+      "name": "Ryloth",
+      "x": 2294,
+      "y": 2425
+    },
+    {
+      "id": 81,
+      "name": "Rodia",
+      "x": 2199,
+      "y": 2283
+    },
+    {
+      "id": 82,
+      "name": "Hoth",
+      "x": 1177,
+      "y": 2577
+    },
+    {
+      "id": 83,
+      "name": "Anoat",
+      "x": 1171,
+      "y": 2565
+    },
+    {
+      "id": 84,
+      "name": "Bespin",
+      "x": 1174,
+      "y": 2553
+    },
+    {
+      "id": 85,
+      "name": "Dagobah",
+      "x": 1554,
+      "y": 2703
+    },
+    {
+      "id": 86,
+      "name": "Mustafar",
+      "x": 1340,
+      "y": 2751
+    },
+    {
+      "id": 87,
+      "name": "Endor",
+      "x": 810,
+      "y": 2307
+    },
+    {
+      "id": 88,
+      "name": "Dathomir",
+      "x": 1774,
+      "y": 784
+    },
+    {
+      "id": 89,
+      "name": "Concord Dawn",
+      "x": 1842,
+      "y": 941
+    },
+    {
+      "id": 90,
+      "name": "Mandalore",
+      "x": 1845,
+      "y": 915
+    },
+    {
+      "id": 91,
+      "name": "Kessel",
+      "x": 2543,
+      "y": 1328
+    },
+    {
+      "id": 92,
+      "name": "Sullust",
+      "x": 1538,
+      "y": 2454
+    },
+    {
+      "id": 93,
+      "name": "Eriadu",
+      "x": 1540,
+      "y": 2521
+    },
+    {
+      "id": 94,
+      "name": "Mygeeto",
+      "x": 1239,
+      "y": 590
+    },
+    {
+      "id": 95,
+      "name": "Felucia",
+      "x": 2307,
+      "y": 758
+    },
+    {
+      "id": 96,
+      "name": "Saleucami",
+      "x": 2385,
+      "y": 1065
+    },
+    {
+      "id": 97,
+      "name": "Utapau",
+      "x": 1613,
+      "y": 2753
+    },
+    {
+      "id": 98,
+      "name": "Ossus",
+      "x": 2327,
+      "y": 842
+    },
+    {
+      "id": 99,
+      "name": "Taris",
+      "x": 1709,
+      "y": 891
+    },
+    {
+      "id": 100,
+      "name": "Wayland",
+      "x": 1725,
+      "y": 946
+    },
+    {
+      "id": 101,
+      "name": "Polis Massa",
+      "x": 1267,
+      "y": 2871
+    },
+    {
+      "id": 102,
+      "name": "Elrood",
+      "x": 1538,
+      "y": 2795
+    },
+    {
+      "id": 103,
+      "name": "Yavin",
+      "x": 1984,
+      "y": 733
+    },
+    {
+      "id": 104,
+      "name": "Dantooine",
+      "x": 1315,
+      "y": 487
+    },
+    {
+      "id": 105,
+      "name": "Muunilinst",
+      "x": 1194,
+      "y": 507
+    },
+    {
+      "id": 106,
+      "name": "Malachor",
+      "x": 2352,
+      "y": 553
+    },
+    {
+      "id": 107,
+      "name": "Hypori",
+      "x": 2372,
+      "y": 2246
+    },
+    {
+      "id": 108,
+      "name": "Raxus",
+      "x": 2437,
+      "y": 712
+    },
+    {
+      "id": 109,
+      "name": "Serenno",
+      "x": 1903,
+      "y": 636
+    },
+    {
+      "id": 110,
+      "name": "Axxila",
+      "x": 1772,
+      "y": 702
+    },
+    {
+      "id": 111,
+      "name": "Phindar",
+      "x": 1924,
+      "y": 866
+    },
+    {
+      "id": 112,
+      "name": "Toola",
+      "x": 2453,
+      "y": 636
+    },
+    {
+      "id": 113,
+      "name": "Klatooine",
+      "x": 2429,
+      "y": 1168
+    },
+    {
+      "id": 114,
+      "name": "Vodran",
+      "x": 2442,
+      "y": 1167
+    },
+    {
+      "id": 115,
+      "name": "Ylesia",
+      "x": 2542,
+      "y": 1622
+    },
+    {
+      "id": 116,
+      "name": "Honoghr",
+      "x": 2551,
+      "y": 1355
+    },
+    {
+      "id": 117,
+      "name": "Sluis Van",
+      "x": 1545,
+      "y": 2645
+    },
+    {
+      "id": 118,
+      "name": "Belsavis",
+      "x": 1376,
+      "y": 2507
+    },
+    {
+      "id": 119,
+      "name": "Clak'dor",
+      "x": 1542,
+      "y": 2584
+    },
+    {
+      "id": 120,
+      "name": "Xagobah",
+      "x": 1589,
+      "y": 2582
+    },
+    {
+      "id": 121,
+      "name": "Rattatak",
+      "x": 774,
+      "y": 2204
+    },
+    {
+      "id": 122,
+      "name": "Jabiim",
+      "x": 2419,
+      "y": 984
+    },
+    {
+      "id": 123,
+      "name": "Sy Myrth",
+      "x": 2334,
+      "y": 943
+    },
+    {
+      "id": 124,
+      "name": "Rishi",
+      "x": 2366,
+      "y": 2073
+    },
+    {
+      "id": 125,
+      "name": "Gamorr",
+      "x": 2549,
+      "y": 1940
+    },
+    {
+      "id": 126,
+      "name": "Barab",
+      "x": 2635,
+      "y": 1742
+    },
+    {
+      "id": 127,
+      "name": "Af'El",
+      "x": 2435,
+      "y": 1129
+    },
+    {
+      "id": 128,
+      "name": "Aduba",
+      "x": 2680,
+      "y": 1479
+    },
+    {
+      "id": 129,
+      "name": "Kubindi",
+      "x": 2581,
+      "y": 1271
+    },
+    {
+      "id": 130,
+      "name": "Boonta",
+      "x": 2406,
+      "y": 1092
+    },
+    {
+      "id": 131,
+      "name": "Rothana",
+      "x": 2564,
+      "y": 2118
+    },
+    {
+      "id": 132,
+      "name": "Cadomai",
+      "x": 2261,
+      "y": 411
+    },
+    {
+      "id": 133,
+      "name": "Bastion",
+      "x": 1185,
+      "y": 367
+    },
+    {
+      "id": 134,
+      "name": "Elom",
+      "x": 2235,
+      "y": 694
+    },
+    {
+      "id": 135,
+      "name": "Lutrillia",
+      "x": 1150,
+      "y": 2537
+    },
+    {
+      "id": 136,
+      "name": "Subterrel",
+      "x": 1334,
+      "y": 2902
+    },
+    {
+      "id": 137,
+      "name": "Askaj",
+      "x": 1493,
+      "y": 2859
+    },
+    {
+      "id": 138,
+      "name": "Cholganna",
+      "x": 2509,
+      "y": 613
+    },
+    {
+      "id": 139,
+      "name": "Chad",
+      "x": 2303,
+      "y": 922
+    },
+    {
+      "id": 140,
+      "name": "Bonadan",
+      "x": 2399,
+      "y": 432
+    },
+    {
+      "id": 141,
+      "name": "Teth",
+      "x": 2649,
+      "y": 1620
+    },
+    {
+      "id": 142,
+      "name": "Vinsoth",
+      "x": 1724,
+      "y": 707
+    },
+    {
+      "id": 143,
+      "name": "Toprawa",
+      "x": 1906,
+      "y": 665
+    },
+    {
+      "id": 144,
+      "name": "Bandomeer",
+      "x": 1781,
+      "y": 840
+    },
+    {
+      "id": 145,
+      "name": "Lianna",
+      "x": 2340,
+      "y": 760
+    },
+    {
+      "id": 146,
+      "name": "Jaminere",
+      "x": 2431,
+      "y": 767
+    },
+    {
+      "id": 147,
+      "name": "Florrum",
+      "x": 2323,
+      "y": 640
+    },
+    {
+      "id": 148,
+      "name": "Zygerria",
+      "x": 2347,
+      "y": 509
+    },
+    {
+      "id": 149,
+      "name": "Oba Diah",
+      "x": 2596,
+      "y": 1323
+    },
+    {
+      "id": 150,
+      "name": "Sriluur",
+      "x": 2447,
+      "y": 1143
+    },
+    {
+      "id": 151,
+      "name": "Ziost",
+      "x": 2208,
+      "y": 548
+    },
+    {
+      "id": 152,
+      "name": "Katarr",
+      "x": 1877,
+      "y": 1062
+    },
+    {
+      "id": 153,
+      "name": "Uvena",
+      "x": 1577,
+      "y": 2500
+    },
+    {
+      "id": 154,
+      "name": "Terminus",
+      "x": 1205,
+      "y": 2910
+    },
+    {
+      "id": 155,
+      "name": "Tawl",
+      "x": 1275,
+      "y": 2548
+    },
+    {
+      "id": 156,
+      "name": "Gerrenthum",
+      "x": 1177,
+      "y": 2531
+    },
+    {
+      "id": 157,
+      "name": "Isde Naha",
+      "x": 1188,
+      "y": 2611
+    },
+    {
+      "id": 158,
+      "name": "Lothal",
+      "x": 2685,
+      "y": 905
+    },
+    {
+      "id": 159,
+      "name": "Scarif",
+      "x": 2396,
+      "y": 2103
+    },
+    {
+      "id": 160,
+      "name": "Batuu",
+      "x": 720,
+      "y": 2143
+    },
+    {
+      "id": 161,
+      "name": "Cantonica",
+      "x": 2359,
+      "y": 462
+    },
+    {
+      "id": 162,
+      "name": "Bakura",
+      "x": 658,
+      "y": 2291
+    },
+    {
+      "id": 163,
+      "name": "Adumar",
+      "x": 1038,
+      "y": 783
+    },
+    {
+      "id": 164,
+      "name": "Gotar",
+      "x": 2701,
+      "y": 1201
+    },
+    {
+      "id": 165,
+      "name": "Csilla",
+      "x": 442,
+      "y": 1137
+    },
+    {
+      "id": 166,
+      "name": "Exegol",
+      "x": 468,
+      "y": 979
+    },
+    {
+      "id": 167,
+      "name": "Ahch-To",
+      "x": 543,
+      "y": 1792
+    },
+    {
+      "id": 168,
+      "name": "Ilum",
+      "x": 710,
+      "y": 952
+    },
+    {
+      "id": 169,
+      "name": "Tython",
+      "x": 1304,
+      "y": 1425
+    },
+    {
+      "id": 170,
+      "name": "Mytus",
+      "x": 2372,
+      "y": 325
+    },
+    {
+      "id": 171,
+      "name": "Agamar",
+      "x": 1527,
+      "y": 699
+    },
+    {
+      "id": 172,
+      "name": "Borosk",
+      "x": 1179,
+      "y": 645
+    },
+    {
+      "id": 173,
+      "name": "Centares",
+      "x": 2242,
+      "y": 926
+    },
+    {
+      "id": 174,
+      "name": "Farstine",
+      "x": 1916,
+      "y": 2344
+    },
+    {
+      "id": 175,
+      "name": "Palanhi",
+      "x": 1225,
+      "y": 1168
+    },
+    {
+      "id": 176,
+      "name": "Bilbringi",
+      "x": 1141,
+      "y": 1073
+    },
+    {
+      "id": 177,
+      "name": "Namadii",
+      "x": 1013,
+      "y": 846
+    },
+    {
+      "id": 178,
+      "name": "Duro",
+      "x": 1541,
+      "y": 1596
+    },
+    {
+      "id": 179,
+      "name": "Orinda",
+      "x": 1282,
+      "y": 808
+    },
+    {
+      "id": 180,
+      "name": "Bescane",
+      "x": 1180,
+      "y": 418
+    },
+    {
+      "id": 181,
+      "name": "Charros",
+      "x": 2211,
+      "y": 1208
+    },
+    {
+      "id": 182,
+      "name": "Nanth'ri",
+      "x": 2085,
+      "y": 1613
+    },
+    {
+      "id": 183,
+      "name": "Exodeen",
+      "x": 1602,
+      "y": 1612
+    },
+    {
+      "id": 184,
+      "name": "Milagro",
+      "x": 1841,
+      "y": 1968
+    },
+    {
+      "id": 185,
+      "name": "Mon Gazza",
+      "x": 2068,
+      "y": 2208
+    },
+    {
+      "id": 186,
+      "name": "Daalang",
+      "x": 2138,
+      "y": 1706
+    },
+    {
+      "id": 187,
+      "name": "Kira",
+      "x": 1687,
+      "y": 2188
+    },
+    {
+      "id": 188,
+      "name": "Vondarc",
+      "x": 1527,
+      "y": 2319
+    },
+    {
+      "id": 189,
+      "name": "Chardaan",
+      "x": 1653,
+      "y": 1907
+    },
+    {
+      "id": 190,
+      "name": "Pax",
+      "x": 1632,
+      "y": 2217
+    },
+    {
+      "id": 191,
+      "name": "Atravis",
+      "x": 1413,
+      "y": 2691
+    },
+    {
+      "id": 192,
+      "name": "Skynara",
+      "x": 2024,
+      "y": 2670
+    },
+    {
+      "id": 193,
+      "name": "Nixus",
+      "x": 1939,
+      "y": 2615
+    },
+    {
+      "id": 194,
+      "name": "Quence",
+      "x": 1885,
+      "y": 2608
+    }
+  ],
+  "routes": [
+    {
+      "from_planet": 1,
+      "to_planet_id": 3,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 1,
+      "to_planet_id": 7,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 1,
+      "to_planet_id": 175,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 3,
+      "to_planet_id": 10,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 3,
+      "to_planet_id": 178,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 5,
+      "to_planet_id": 6,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 6,
+      "to_planet_id": 43,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 7,
+      "to_planet_id": 5,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 8,
+      "to_planet_id": 16,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 10,
+      "to_planet_id": 31,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 13,
+      "to_planet_id": 35,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 16,
+      "to_planet_id": 183,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 23,
+      "to_planet_id": 36,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 28,
+      "to_planet_id": 37,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 29,
+      "to_planet_id": 44,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 30,
+      "to_planet_id": 29,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 31,
+      "to_planet_id": 30,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 33,
+      "to_planet_id": 54,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 35,
+      "to_planet_id": 23,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 36,
+      "to_planet_id": 37,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 37,
+      "to_planet_id": 45,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 37,
+      "to_planet_id": 188,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 41,
+      "to_planet_id": 48,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 43,
+      "to_planet_id": 76,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 44,
+      "to_planet_id": 184,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 44,
+      "to_planet_id": 189,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 45,
+      "to_planet_id": 52,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 46,
+      "to_planet_id": 56,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 47,
+      "to_planet_id": 74,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 48,
+      "to_planet_id": 57,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 50,
+      "to_planet_id": 8,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 51,
+      "to_planet_id": 46,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 51,
+      "to_planet_id": 50,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 52,
+      "to_planet_id": 156,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 53,
+      "to_planet_id": 182,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 54,
+      "to_planet_id": 53,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 56,
+      "to_planet_id": 76,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 57,
+      "to_planet_id": 181,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 59,
+      "to_planet_id": 93,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 64,
+      "to_planet_id": 179,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 74,
+      "to_planet_id": 177,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 75,
+      "to_planet_id": 185,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 76,
+      "to_planet_id": 173,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 77,
+      "to_planet_id": 145,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 78,
+      "to_planet_id": 174,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 85,
+      "to_planet_id": 102,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 92,
+      "to_planet_id": 93,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 93,
+      "to_planet_id": 119,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 93,
+      "to_planet_id": 191,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 99,
+      "to_planet_id": 51,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 105,
+      "to_planet_id": 180,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 117,
+      "to_planet_id": 85,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 119,
+      "to_planet_id": 117,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 122,
+      "to_planet_id": 129,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 123,
+      "to_planet_id": 122,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 125,
+      "to_planet_id": 78,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 126,
+      "to_planet_id": 125,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 128,
+      "to_planet_id": 141,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 129,
+      "to_planet_id": 149,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 132,
+      "to_planet_id": 143,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 140,
+      "to_planet_id": 132,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 141,
+      "to_planet_id": 126,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 143,
+      "to_planet_id": 144,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 144,
+      "to_planet_id": 99,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 144,
+      "to_planet_id": 171,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 149,
+      "to_planet_id": 128,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 156,
+      "to_planet_id": 157,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 157,
+      "to_planet_id": 154,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 171,
+      "to_planet_id": 172,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 172,
+      "to_planet_id": 105,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 173,
+      "to_planet_id": 77,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 173,
+      "to_planet_id": 123,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 175,
+      "to_planet_id": 176,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 176,
+      "to_planet_id": 47,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 178,
+      "to_planet_id": 28,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 179,
+      "to_planet_id": 172,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 180,
+      "to_planet_id": 133,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 183,
+      "to_planet_id": 33,
+      "route_type": "Other Route"
+    },
+    {
+      "from_planet": 183,
+      "to_planet_id": 44,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 184,
+      "to_planet_id": 75,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 185,
+      "to_planet_id": 80,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 188,
+      "to_planet_id": 92,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 189,
+      "to_planet_id": 190,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 190,
+      "to_planet_id": 59,
+      "route_type": "Main Route"
+    },
+    {
+      "from_planet": 191,
+      "to_planet_id": 154,
+      "route_type": "Main Route"
+    }
+  ]
+}
