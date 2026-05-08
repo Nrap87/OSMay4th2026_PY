@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planet TSP — route score</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+</head>
+<body>
+  <header>
+    <nav class="nav-top">
+      <a href="/outsystems">OutSystems dashboard</a>
+    </nav>
+    <h1>Planet TSP — route score</h1>
+    <p class="sub">
+      Same local model as <code>route_coaxium_check.py</code>. Paste <code>data.json</code>,
+      optional <code>challenge.json</code>, and a <code>route</code> array, then score.
+    </p>
+  </header>
+
+  <main>
+    <section class="panels">
+      <label class="field">
+        <span>Map JSON (<code>data.json</code>)</span>
+        <textarea id="data" rows="12" spellcheck="false" placeholder="{ &quot;planets&quot;: [...], &quot;routes&quot;: [...] }"></textarea>
+      </label>
+      <label class="field">
+        <span>Challenge JSON (optional)</span>
+        <textarea id="challenge" rows="10" spellcheck="false" placeholder="{ &quot;startPlanetId&quot;: 10, ... }"></textarea>
+      </label>
+      <label class="field">
+        <span>Route (planet ids JSON array)</span>
+        <textarea id="route" rows="4" spellcheck="false" placeholder="[10, 3, 10]"></textarea>
+      </label>
+    </section>
+
+    <div class="actions">
+      <button type="button" id="btn-load-sample">Load sample from repo defaults</button>
+      <button type="button" id="btn-score" class="primary">Score route</button>
+    </div>
+
+    <section id="err" class="banner error hidden" role="alert"></section>
+    <section id="out" class="results hidden">
+      <h2>Results</h2>
+      <dl class="metrics">
+        <dt>Gross fuel</dt><dd id="gross"></dd>
+        <dt>Bonus</dt><dd id="bonus"></dd>
+        <dt>Net (solver style)</dt><dd id="net"></dd>
+        <dt>ChallengeId</dt><dd id="cid"></dd>
+      </dl>
+      <h3>Validation</h3>
+      <pre id="validation" class="json"></pre>
+      <h3>Legs</h3>
+      <div class="table-wrap">
+        <table id="legs">
+          <thead><tr><th>From</th><th>To</th><th>Cost</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>API: <code>POST /api/score</code> · <code>GET /health</code></p>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>

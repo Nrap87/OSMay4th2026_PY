@@ -8,9 +8,11 @@
 #   schedule:
 #     - cron: "0 1 * * *"   # 01:00 UTC daily
 #
-# Secrets (Settings → Secrets and variables → Actions):
-#   PLAYER_GUID, PLAYER_EMAIL  (required)
+# Secrets — use "Repository secrets" (Settings → Secrets and variables → Actions):
+#   PLAYER_GUID, PLAYER_EMAIL  (required; names are case-sensitive)
 #   STAR_DELIVERY_BASE_URL     (optional)
+# If those are missing or the repo cannot access org secrets, the solve step exits with an error.
+# Secrets are not available to workflows triggered from fork PRs.
 #
 # External 01:00 example (fine-grained PAT with repo contents + workflows if needed):
 #   curl -L -X POST -H "Accept: application/vnd.github+json" \
@@ -45,16 +47,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Check credentials
-        env:
-          PLAYER_GUID: ${{ secrets.PLAYER_GUID }}
-          PLAYER_EMAIL: ${{ secrets.PLAYER_EMAIL }}
-        run: |
-          if [ -z "$PLAYER_GUID" ] || [ -z "$PLAYER_EMAIL" ]; then
-            echo "::error::Set PLAYER_GUID and PLAYER_EMAIL repository secrets."
-            exit 1
-          fi
 
       - name: Solve (API) + submit
         env:

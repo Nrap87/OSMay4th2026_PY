@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OutSystems — daily challenges</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="stylesheet" href="/assets/outsystems.css" />
+</head>
+<body class="dash">
+  <header class="topbar">
+    <div class="brand">
+      <h1>Star Delivery — OutSystems</h1>
+      <p class="sub">Live API: map, routes, daily challenges, solve / submit via <code>tsp_solver.py</code></p>
+    </div>
+    <nav class="navlinks">
+      <a href="/">Route score</a>
+      <a href="/outsystems" aria-current="page">API dashboard</a>
+    </nav>
+  </header>
+
+  <section class="panel creds">
+    <h2>Credentials</h2>
+    <p class="hint">
+      Values are kept in this server process only (or use <code>PLAYER_GUID</code> / <code>PLAYER_EMAIL</code> env).
+      Masked preview updates after save.
+    </p>
+    <div class="status-line" id="status-line">Loading…</div>
+    <form id="creds-form" class="creds-grid">
+      <label>PlayerGuid <input name="player_guid" type="text" autocomplete="off" placeholder="From OutSystems" /></label>
+      <label>PlayerEmail <input name="player_email" type="email" autocomplete="off" placeholder="you@example.com" /></label>
+      <label class="wide">Base URL (optional) <input name="base_url" type="url" placeholder="Default OutSystems REST base" /></label>
+      <div class="creds-actions">
+        <button type="submit" class="primary">Save session</button>
+        <button type="button" id="btn-clear-session">Clear session</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="row spread">
+      <h2>Map &amp; challenges</h2>
+      <button type="button" id="btn-refresh" class="primary">Refresh from OutSystems</button>
+    </div>
+    <div id="stats" class="stats hidden">
+      <div class="stat"><span class="label">Planets</span><span id="stat-planets" class="num">—</span></div>
+      <div class="stat"><span class="label">Routes (hyperlanes)</span><span id="stat-routes" class="num">—</span></div>
+      <div class="stat"><span class="label">Daily challenges</span><span id="stat-challenges" class="num">—</span></div>
+    </div>
+    <p id="refresh-msg" class="msg"></p>
+  </section>
+
+  <section class="panel">
+    <div class="row spread">
+      <h2>Challenges</h2>
+      <div class="bulk">
+        <label>Parallel <input id="parallel-all" type="number" min="1" max="16" value="6" /></label>
+        <button type="button" id="btn-submit-all" class="danger">Submit all (solve + submit, ordered pipeline)</button>
+      </div>
+    </div>
+    <p class="hint">“Solve” runs the solver only. “Solve &amp; submit” runs solver then <code>SubmitChallengeSolution</code>. Finished challenges are still solved locally; submit is skipped by the CLI.</p>
+    <div id="cards" class="cards"></div>
+  </section>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-inner">
+      <button type="button" class="modal-close" id="modal-close" aria-label="Close">×</button>
+      <h3 id="modal-title">Result</h3>
+      <pre id="modal-body" class="modal-pre"></pre>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <p>API: <code>/api/outsystems/status</code>, <code>POST /refresh</code>, <code>POST /challenges/{id}/run?submit=…</code>, <code>POST /submit-all</code></p>
+  </footer>
+
+  <script src="/assets/outsystems.js"></script>
+</body>
+</html>
