@@ -1,12 +1,12 @@
 # Scheduled / on-demand: fetch daily challenges from API, solve in parallel, submit.
 #
 # Triggers:
-#   - workflow_dispatch     → run manually from the Actions tab
-#   - repository_dispatch   → event type "scheduled-run" (e.g. external cron + PAT calling the API)
+#   - workflow_dispatch     → run manually (always runs solve)
+#   - repository_dispatch   → event type "scheduled-run" (always runs solve)
+#   - schedule              → 01:00 UTC daily; solve runs only inside the calendar window
+#                             (default May 11–17; env on the calendar step: SCHED_START_* / SCHED_END_*)
 #
-# Optional: add native GitHub cron under `on:` if you do not use repository_dispatch:
-#   schedule:
-#     - cron: "0 1 * * *"   # 01:00 UTC daily
+# Cron uses UTC. For local 01:00 in your time zone, use Task Scheduler (see below).
 #
 # Secrets — use "Repository secrets" (Settings → Secrets and variables → Actions):
 #   PLAYER_GUID, PLAYER_EMAIL  (required; names are case-sensitive)
@@ -22,6 +22,13 @@
 #        -d '{"event_type":"scheduled-run","client_payload":{}}'
 #
 # Monorepo: add under `jobs:` → `defaults: run: working-directory: planet-tsp-solver`
+#
+# Local Windows Task Scheduler (e.g. 01:00 your time, same May 11–17 window):
+#   Program: python
+#   Arguments: scripts\calendar_window.py --cwd . --exec python tsp_solver.py --from-challenge-api --all-challenges --parallel 6 --submit --batch-summary
+#   Start in: C:\path\to\planet-tsp-solver
+#   Set environment: PLAYER_GUID, PLAYER_EMAIL (do not hardcode secrets in the task).
+#   Or use gate-only: cmd /c "python scripts\calendar_window.py && python tsp_solver.py ..."
 
 name: Scheduled solve + submit
 
@@ -29,6 +36,9 @@ on:
   workflow_dispatch:
   repository_dispatch:
     types: [scheduled-run]
+  schedule:
+    # 01:00 UTC every day; calendar step limits runs to SCHED_* window (default May 11–17).
+    - cron: "0 1 * * *"
 
 permissions:
   contents: read
@@ -48,7 +58,23 @@ jobs:
         with:
           python-version: "3.12"
 
+      - id: calendar
+        name: Calendar window (scheduled runs only)
+        env:
+          SCHED_START_MONTH: 5
+          SCHED_START_DAY: 11
+          SCHED_END_MONTH: 5
+          SCHED_END_DAY: 17
+          # Optional: require job start time in UTC (runner clock) to sit in a daily window:
+          # SCHED_ENFORCE_DAILY_TIME: "1"
+          # SCHED_DAILY_START_HOUR: "1"
+          # SCHED_DAILY_START_MINUTE: "0"
+          # SCHED_DAILY_END_HOUR: "1"
+          # SCHED_DAILY_END_MINUTE: "15"
+        run: python scripts/calendar_window.py
+
       - name: Solve (API) + submit
+        if: github.event_name != 'schedule' || steps.calendar.outputs.should_run == 'true'
         env:
           PLAYER_GUID: ${{ secrets.PLAYER_GUID }}
           PLAYER_EMAIL: ${{ secrets.PLAYER_EMAIL }}
@@ -59,3 +85,7 @@ jobs:
           --all-challenges
           --parallel 6
           --submit
+
+      - name: Skipped (outside calendar window)
+        if: github.event_name == 'schedule' && steps.calendar.outputs.should_run != 'true'
+        run: echo "Not in SCHED_START_* .. SCHED_END_* window; solver not started."

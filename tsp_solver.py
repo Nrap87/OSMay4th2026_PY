@@ -234,24 +234,36 @@ def fetch_json(base_url, path, headers):
         raise RuntimeError(f"{path} response is not valid JSON") from exc
 
 
-def load_from_api(args):
+def fetch_map_raw_blob(args):
+    """Raw planets/routes lists as returned by the API (for batch map.json)."""
     try:
         base_url, headers = api_connection(args)
     except ValueError as exc:
-        raise ValueError(f"API mode (--from-api): {exc}") from exc
+        raise ValueError(f"GetPlanetsAndRoutes: {exc}") from exc
     map_payload = fetch_json(base_url, "GetPlanetsAndRoutes", headers)
-    challenges_payload = fetch_json(base_url, "GetDailyChallenge", headers)
-
     if not isinstance(map_payload, dict):
         raise ValueError("GetPlanetsAndRoutes returned an unexpected payload type")
-
     planets_raw = pick(map_payload, "Planets", "planets") or []
     routes_raw = pick(map_payload, "Routes", "routes") or []
-    data = {
-        "planets": [normalize_planet(p) for p in planets_raw],
-        "routes": [normalize_route(r) for r in routes_raw],
-    }
+    return {"planets": planets_raw, "routes": routes_raw}
 
+
+def load_map_raw_blob_from_file(data_path):
+    """Same shape as fetch_map_raw_blob, read from local JSON (Planets/Routes or planets/routes)."""
+    with open(data_path, encoding="utf-8") as f:
+        data_raw = json.load(f)
+    planets_raw = pick(data_raw, "Planets", "planets") or []
+    routes_raw = pick(data_raw, "Routes", "routes") or []
+    return {"planets": planets_raw, "routes": routes_raw}
+
+
+def fetch_challenges_raw_list(args):
+    """Daily challenge list from GetDailyChallenge."""
+    try:
+        base_url, headers = api_connection(args)
+    except ValueError as exc:
+        raise ValueError(f"GetDailyChallenge: {exc}") from exc
+    challenges_payload = fetch_json(base_url, "GetDailyChallenge", headers)
     if isinstance(challenges_payload, list):
         challenge_list = challenges_payload
     elif isinstance(challenges_payload, dict) and isinstance(challenges_payload.get("items"), list):
@@ -260,49 +272,48 @@ def load_from_api(args):
         challenge_list = []
     if not challenge_list:
         raise ValueError("GetDailyChallenge returned no challenges")
+    return challenge_list
 
-    raw_challenge = None
+
+def pick_raw_challenge_from_list(challenge_list, args):
     if args.challenge_id is not None:
         for c in challenge_list:
             cid = to_int(pick(c, "ChallengeId", "challengeId"), default=-1)
             if cid == args.challenge_id:
-                raw_challenge = c
-                break
-        if raw_challenge is None:
-            raise ValueError(f"Challenge ID {args.challenge_id} not found")
-    else:
-        idx = args.challenge_index
-        if idx < 0 or idx >= len(challenge_list):
-            raise ValueError(f"Challenge index {idx} out of range (found {len(challenge_list)} challenges)")
-        raw_challenge = challenge_list[idx]
+                return c
+        raise ValueError(f"Challenge ID {args.challenge_id} not found")
+    idx = args.challenge_index
+    if idx < 0 or idx >= len(challenge_list):
+        raise ValueError(f"Challenge index {idx} out of range (found {len(challenge_list)} challenges)")
+    return challenge_list[idx]
 
-    return data, normalize_challenge(raw_challenge)
+
+def load_map_from_api(args):
+    blob = fetch_map_raw_blob(args)
+    return {
+        "planets": [normalize_planet(p) for p in blob["planets"]],
+        "routes": [normalize_route(r) for r in blob["routes"]],
+    }
+
+
+def load_challenge_from_api(args):
+    challenge_list = fetch_challenges_raw_list(args)
+    raw_challenge = pick_raw_challenge_from_list(challenge_list, args)
+    return normalize_challenge(raw_challenge)
+
+
+def load_from_api(args):
+    """Fetch both map and one challenge from API (same as --from-planets-api --from-challenge-api)."""
+    return load_map_from_api(args), load_challenge_from_api(args)
 
 
 def fetch_raw_maps_and_challenges(args):
-    """Return (data dict for JSON file: raw planets/routes) and list of raw challenge dicts from API."""
-    try:
-        base_url, headers = api_connection(args)
-    except ValueError as exc:
-        raise ValueError(f"API mode (--from-api): {exc}") from exc
-    map_payload = fetch_json(base_url, "GetPlanetsAndRoutes", headers)
-    challenges_payload = fetch_json(base_url, "GetDailyChallenge", headers)
-
-    if not isinstance(map_payload, dict):
-        raise ValueError("GetPlanetsAndRoutes returned an unexpected payload type")
-
-    planets_raw = pick(map_payload, "Planets", "planets") or []
-    routes_raw = pick(map_payload, "Routes", "routes") or []
-    data_blob = {"planets": planets_raw, "routes": routes_raw}
-
-    if isinstance(challenges_payload, list):
-        challenge_list = challenges_payload
-    elif isinstance(challenges_payload, dict) and isinstance(challenges_payload.get("items"), list):
-        challenge_list = challenges_payload["items"]
+    """Batch: map from API or data_path; challenges always from GetDailyChallenge."""
+    if args.from_planets_api:
+        data_blob = fetch_map_raw_blob(args)
     else:
-        challenge_list = []
-    if not challenge_list:
-        raise ValueError("GetDailyChallenge returned no challenges")
+        data_blob = load_map_raw_blob_from_file(args.data_path)
+    challenge_list = fetch_challenges_raw_list(args)
     return data_blob, challenge_list
 
 
@@ -311,7 +322,7 @@ def challenge_sort_key(raw):
 
 
 def forward_flags_for_child(args):
-    """CLI flags to pass to child tsp_solver (file mode), excluding --from-api and batch-only flags."""
+    """CLI flags to pass to child tsp_solver (file mode); no --from-* (child uses map/challenge files)."""
     a = []
     if args.verbose:
         a.append("-v")
@@ -348,7 +359,7 @@ def forward_flags_solve_only(args):
     return a
 
 
-def _batch_solve_worker(script, cwd, data_path, ch_path, result_path, flags):
+def _batch_solve_worker(script, cwd, data_path, ch_path, result_path, flags, *, quiet_report=False):
     cmd = [
         sys.executable,
         script,
@@ -358,15 +369,20 @@ def _batch_solve_worker(script, cwd, data_path, ch_path, result_path, flags):
         result_path,
         *flags,
     ]
-    return subprocess.run(cmd, cwd=cwd)
+    env = os.environ.copy()
+    if quiet_report:
+        env["TSP_SOLVER_QUIET_REPORT"] = "1"
+    return subprocess.run(cmd, cwd=cwd, env=env)
 
 
-def _batch_solve_task(script, cwd, data_path, result_path, flags, job):
-    r = _batch_solve_worker(script, cwd, data_path, job["ch_path"], result_path, flags)
+def _batch_solve_task(script, cwd, data_path, result_path, flags, job, *, quiet_report=False):
+    r = _batch_solve_worker(
+        script, cwd, data_path, job["ch_path"], result_path, flags, quiet_report=quiet_report
+    )
     return job["cid"], r.returncode, result_path, job
 
 
-def _enqueue_batch_solve_completion(future, job, completion_q):
+def _enqueue_batch_solve_completion(future, job, completion_q, *, silent=False):
     """ThreadPool callback: record solve outcome; main thread submits API in ChallengeId order."""
     cid = job["cid"]
     idx = job["index"]
@@ -374,14 +390,68 @@ def _enqueue_batch_solve_completion(future, job, completion_q):
         completion_q.put((idx, "ok", future.result()))
     except Exception as exc:
         completion_q.put((idx, "err", exc))
-    print(
-        f"[batch] ChallengeId={cid} solve finished (API runs in id order; may wait on earlier challenges)",
-        file=sys.stderr,
-        flush=True,
-    )
+    if not silent:
+        print(
+            f"[batch] ChallengeId={cid} solve finished (API runs in id order; may wait on earlier challenges)",
+            file=sys.stderr,
+            flush=True,
+        )
 
 
-def _batch_api_pipeline_ordered(jobs, completion_q, base_url, headers, args, planets_parent):
+def _fmt_batch_sec(seconds):
+    if seconds is None:
+        return "—"
+    return f"{float(seconds):.3f}"
+
+
+def _print_batch_challenge_summary(j, dump, args, *, calc_s, calc_coax, submit_s, submit_coax, submit_note):
+    """One block per challenge: route, phase timings, coaxium (stdout)."""
+    cid = j["cid"]
+    cname = j["cname"]
+    route = dump.get("route") or []
+    solve_s = dump.get("solveSeconds")
+    if solve_s is None:
+        lb = dump.get("lowerBoundSeconds")
+        bb = dump.get("branchBoundSeconds")
+        if lb is not None and bb is not None:
+            solve_s = float(lb) + float(bb)
+    best_net = dump.get("bestNet")
+
+    parts = [
+        "",
+        "=" * 70,
+        f"ChallengeId={cid}  {cname}",
+        f"  route: {json.dumps(route, separators=(',', ':'))}",
+        f"  solve_s:            {_fmt_batch_sec(solve_s)}",
+    ]
+    if args.calculate_coaxium:
+        parts.append(f"  calculate_coaxium_s: {_fmt_batch_sec(calc_s)}")
+        parts.append(
+            f"  coaxium_calculate:   {calc_coax if calc_coax is not None else '—'}",
+        )
+    if args.submit:
+        parts.append(f"  submit_s:            {_fmt_batch_sec(submit_s)}")
+        parts.append(
+            f"  coaxium_submit:      {submit_coax if submit_coax is not None else '—'}",
+        )
+        if submit_note:
+            parts.append(f"  submit_note:         {submit_note}")
+    if best_net is not None:
+        parts.append(f"  local_best_net:      {best_net}")
+
+    total = 0.0
+    if solve_s is not None:
+        total += float(solve_s)
+    if calc_s is not None:
+        total += float(calc_s)
+    if submit_s is not None:
+        total += float(submit_s)
+    parts.append(f"  total_s (solve+API): {_fmt_batch_sec(total)}")
+    parts.append("=" * 70)
+    print("\n".join(parts), flush=True)
+
+
+def _batch_api_pipeline_ordered(jobs, completion_q, base_url, headers, args, planets_parent, *, batch_summary):
     """
     For each challenge index in sorted (ChallengeId) order:
       - Wait for that index's local solve to complete (later ids may finish first and queue up).
@@ -394,13 +464,14 @@ def _batch_api_pipeline_ordered(jobs, completion_q, base_url, headers, args, pla
     n = len(jobs)
     next_i = 0
 
-    print("\n" + "=" * 70, file=sys.stderr)
-    print(
-        "[batch] API pipeline: ChallengeId ascending; each step after prior index (solve + optional API); "
-        "Submit skipped when IsFinished",
-        file=sys.stderr,
-    )
-    print("=" * 70 + "\n", file=sys.stderr)
+    if not batch_summary:
+        print("\n" + "=" * 70, file=sys.stderr)
+        print(
+            "[batch] API pipeline: ChallengeId ascending; each step after prior index (solve + optional API); "
+            "Submit skipped when IsFinished",
+            file=sys.stderr,
+        )
+        print("=" * 70 + "\n", file=sys.stderr)
 
     while next_i < n:
         while next_i not in pending:
@@ -426,12 +497,13 @@ def _batch_api_pipeline_ordered(jobs, completion_q, base_url, headers, args, pla
             continue
 
         _, code, result_path, _job = data
-        print(
-            f"[batch] --- ChallengeId={cid}  solve_rc={code}  IsFinished={j['is_finished']} "
-            f"(ready for API in order) ---",
-            file=sys.stderr,
-            flush=True,
-        )
+        if not batch_summary:
+            print(
+                f"[batch] --- ChallengeId={cid}  solve_rc={code}  IsFinished={j['is_finished']} "
+                f"(ready for API in order) ---",
+                file=sys.stderr,
+                flush=True,
+            )
 
         if code != 0:
             print(f"[batch] ChallengeId={cid}: skip API (solve failed)", file=sys.stderr, flush=True)
@@ -461,34 +533,66 @@ def _batch_api_pipeline_ordered(jobs, completion_q, base_url, headers, args, pla
             next_i += 1
             continue
 
+        calc_s = None
+        calc_coax = None
+        submit_s = None
+        submit_coax = None
+        submit_note = ""
+
         if args.calculate_coaxium:
-            print(f"OUTSYSTEMS: CalculateCoaxium  ChallengeId={cid}", flush=True)
+            if not batch_summary:
+                print(f"OUTSYSTEMS: CalculateCoaxium  ChallengeId={cid}", flush=True)
+            t0 = time.perf_counter()
             try:
                 calc = api_calculate_coaxium(base_url, headers, cid, route, planets_parent)
-                print(f"  Success:   {calc['is_success']}")
-                print(f"  Coaxium:   {calc['coaxium']}")
-                print(f"  Feedback:  {calc['feedback_message']}")
+                calc_s = time.perf_counter() - t0
+                calc_coax = calc.get("coaxium")
+                if not batch_summary:
+                    print(f"  Success:   {calc['is_success']}")
+                    print(f"  Coaxium:   {calc['coaxium']}")
+                    print(f"  Feedback:  {calc['feedback_message']}")
             except RuntimeError as exc:
+                calc_s = time.perf_counter() - t0
                 print(f"  Error: {exc}", file=sys.stderr, flush=True)
                 worst = 1 if worst == 0 else worst
 
         if args.submit:
             if fin:
-                print(
-                    f"[batch] ChallengeId={cid}: IsFinished on API — skip SubmitChallengeSolution",
-                    file=sys.stderr,
-                    flush=True,
-                )
+                submit_note = "skipped (IsFinished on API — no SubmitChallengeSolution call)"
+                if not batch_summary:
+                    print(
+                        f"[batch] ChallengeId={cid}: IsFinished on API — skip SubmitChallengeSolution",
+                        file=sys.stderr,
+                        flush=True,
+                    )
             else:
-                print(f"OUTSYSTEMS: SubmitChallengeSolution  ChallengeId={cid}", flush=True)
+                if not batch_summary:
+                    print(f"OUTSYSTEMS: SubmitChallengeSolution  ChallengeId={cid}", flush=True)
+                t0 = time.perf_counter()
                 try:
                     sub = api_submit_solution(base_url, headers, cid, route, planets_parent)
-                    print(f"  Success:   {sub['is_success']}")
-                    print(f"  Coaxium:   {sub['coaxium']}")
-                    print(f"  Feedback:  {sub['feedback_message']}")
+                    submit_s = time.perf_counter() - t0
+                    submit_coax = sub.get("coaxium")
+                    if not batch_summary:
+                        print(f"  Success:   {sub['is_success']}")
+                        print(f"  Coaxium:   {sub['coaxium']}")
+                        print(f"  Feedback:  {sub['feedback_message']}")
                 except RuntimeError as exc:
+                    submit_s = time.perf_counter() - t0
                     print(f"  Error: {exc}", file=sys.stderr, flush=True)
                     worst = 1 if worst == 0 else worst
+
+        if batch_summary:
+            _print_batch_challenge_summary(
+                j,
+                dump,
+                args,
+                calc_s=calc_s,
+                calc_coax=calc_coax,
+                submit_s=submit_s,
+                submit_coax=submit_coax,
+                submit_note=submit_note,
+            )
 
         next_i += 1
 
@@ -497,7 +601,7 @@ def _batch_api_pipeline_ordered(jobs, completion_q, base_url, headers, args, pla
 
 def run_batch_all_challenges(args):
     """
-    Fetch map + all daily challenges once.
+    Map from GetPlanetsAndRoutes (--from-planets-api) or from data_path; challenges from GetDailyChallenge.
     Challenges are ordered by ChallengeId ascending (stable: ties keep API list order).
     Solves run in parallel (--parallel), including IsFinished challenges. With --calculate-coaxium /
     --submit, the parent runs API calls in ChallengeId order as soon as each challenge's solve
@@ -522,7 +626,12 @@ def run_batch_all_challenges(args):
         pw = 4
     parallel = max(1, min(pw, len(ordered)))
     parent_handles_api = bool(args.calculate_coaxium or args.submit)
+    use_summary = args.batch_summary
+    if use_summary is None:
+        use_summary = parent_handles_api
     solve_flags = forward_flags_solve_only(args) if parent_handles_api else forward_flags_for_child(args)
+    if parent_handles_api and use_summary:
+        solve_flags = [f for f in solve_flags if f not in ("-v", "--verbose")]
 
     script = os.path.abspath(__file__)
     cwd = os.path.dirname(script) or "."
@@ -558,7 +667,8 @@ def run_batch_all_challenges(args):
 
         print(
             f"[batch] challenges={len(jobs)} order=ChallengeId_asc parallel_solves={parallel} "
-            f"parent_ordered_api={'yes' if parent_handles_api else 'no (child handles coaxium/submit if flags set)'}",
+            f"parent_ordered_api={'yes' if parent_handles_api else 'no (child handles coaxium/submit if flags set)'} "
+            f"summary={'on' if (parent_handles_api and use_summary) else 'off'}",
             file=sys.stderr,
             flush=True,
         )
@@ -566,14 +676,16 @@ def run_batch_all_challenges(args):
         with ThreadPoolExecutor(max_workers=parallel) as ex:
             if parent_handles_api:
                 completion_q = queue.Queue()
+                quiet_child = bool(use_summary)
                 for j in jobs:
-                    banner = (
-                        f"\n{'#' * 70}\n"
-                        f"# SOLVE START  ChallengeId={j['cid']}  IsFinished={j['is_finished']}\n"
-                        f"# {j['cname']}\n"
-                        f"{'#' * 70}\n"
-                    )
-                    print(banner, file=sys.stderr, flush=True)
+                    if not use_summary:
+                        banner = (
+                            f"\n{'#' * 70}\n"
+                            f"# SOLVE START  ChallengeId={j['cid']}  IsFinished={j['is_finished']}\n"
+                            f"# {j['cname']}\n"
+                            f"{'#' * 70}\n"
+                        )
+                        print(banner, file=sys.stderr, flush=True)
                     fut = ex.submit(
                         _batch_solve_task,
                         script,
@@ -582,9 +694,12 @@ def run_batch_all_challenges(args):
                         j["result_path"],
                         solve_flags,
                         j,
+                        quiet_report=quiet_child,
                     )
                     fut.add_done_callback(
-                        lambda f, job=j: _enqueue_batch_solve_completion(f, job, completion_q)
+                        lambda f, job=j, silent=quiet_child: _enqueue_batch_solve_completion(
+                            f, job, completion_q, silent=silent
+                        )
                     )
 
                 try:
@@ -597,7 +712,7 @@ def run_batch_all_challenges(args):
                     return 1
 
                 worst = _batch_api_pipeline_ordered(
-                    jobs, completion_q, base_url, headers, args, planets_parent
+                    jobs, completion_q, base_url, headers, args, planets_parent, batch_summary=use_summary
                 )
             else:
                 futures_in_order = []
@@ -650,26 +765,49 @@ def run_batch_all_challenges(args):
     return worst
 
 
-def load_from_files(data_path, challenge_path):
+def load_data_only_from_files(data_path):
     with open(data_path, encoding="utf-8") as f:
         data_raw = json.load(f)
+    planets_raw = pick(data_raw, "Planets", "planets") or []
+    routes_raw = pick(data_raw, "Routes", "routes") or []
+    return {
+        "planets": [normalize_planet(p) for p in planets_raw],
+        "routes": [normalize_route(r) for r in routes_raw],
+    }
+
+
+def load_challenge_only_from_files(challenge_path):
     with open(challenge_path, encoding="utf-8") as f:
         challenge_raw = json.load(f)
-    data = {
-        "planets": [normalize_planet(p) for p in data_raw.get("planets", [])],
-        "routes": [normalize_route(r) for r in data_raw.get("routes", [])],
-    }
     challenge_obj = challenge_raw[0] if isinstance(challenge_raw, list) else challenge_raw
     if not isinstance(challenge_obj, dict):
         raise ValueError("Challenge file must contain an object or a list with one object")
-    return data, normalize_challenge(challenge_obj)
+    return normalize_challenge(challenge_obj)
+
+
+def load_from_files(data_path, challenge_path):
+    return load_data_only_from_files(data_path), load_challenge_only_from_files(challenge_path)
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Solve TSP for Star Delivery maps/challenges.")
     parser.add_argument("data_path", nargs="?", default="data.json", help="Path to local map data JSON")
     parser.add_argument("challenge_path", nargs="?", default="challenge.json", help="Path to local challenge JSON")
-    parser.add_argument("--from-api", action="store_true", help="Fetch planets/routes/challenges from OutSystems API")
+    parser.add_argument(
+        "--from-planets-api",
+        action="store_true",
+        help="Fetch planets/routes from GetPlanetsAndRoutes; otherwise use data_path (default data.json).",
+    )
+    parser.add_argument(
+        "--from-challenge-api",
+        action="store_true",
+        help="Fetch challenge(s) from GetDailyChallenge; otherwise use challenge_path (default challenge.json).",
+    )
+    parser.add_argument(
+        "--from-api",
+        action="store_true",
+        help="Shorthand for both --from-planets-api and --from-challenge-api.",
+    )
     parser.add_argument("--base-url", default="", help="Star Delivery base URL")
     parser.add_argument("--player-guid", default="", help="PlayerGuid header for API requests")
     parser.add_argument("--player-email", default="", help="PlayerEmail header for API requests")
@@ -677,17 +815,22 @@ def parse_args():
         "--challenge-id",
         type=int,
         default=None,
-        help="ChallengeId: --from-api selection, --calculate-coaxium/--submit, or --greedy-seed-coaxium",
+        help="ChallengeId: pick from daily list (--from-challenge-api), --calculate-coaxium/--submit, or --greedy-seed-coaxium",
     )
-    parser.add_argument("--challenge-index", type=int, default=0, help="Challenge index in daily list (API mode)")
+    parser.add_argument(
+        "--challenge-index",
+        type=int,
+        default=0,
+        help="Challenge index in GetDailyChallenge list (only with --from-challenge-api).",
+    )
     parser.add_argument(
         "--all-challenges",
         action="store_true",
         help=(
-            "With --from-api: solve every challenge in GetDailyChallenge (includes finished; use --skip-finished to omit). "
-            "Challenges are sorted by ChallengeId ascending. All matching challenges are solved in parallel (--parallel), "
-            "including IsFinished. With --calculate-coaxium / --submit, the parent runs API calls in ChallengeId order "
-            "as each solve completes (sequential pipeline); Submit is skipped for IsFinished challenges."
+            "Requires --from-challenge-api (or --from-api): solve every challenge in GetDailyChallenge. "
+            "Map comes from --from-planets-api or data_path. Challenges are sorted by ChallengeId ascending; "
+            "solves run in parallel (--parallel). With --calculate-coaxium / --submit, the parent runs API calls in "
+            "ChallengeId order; Submit is skipped for IsFinished challenges."
         ),
     )
     parser.add_argument(
@@ -752,15 +895,40 @@ def parse_args():
         metavar="N",
         help="With --verbose: log every N DFS nodes (0 = phase logs only). Default 50000.",
     )
+    _bs = parser.add_mutually_exclusive_group()
+    _bs.add_argument(
+        "--batch-summary",
+        dest="batch_summary",
+        action="store_true",
+        help=(
+            "With --all-challenges and --calculate-coaxium / --submit: print one compact block per challenge "
+            "(route, solve/API seconds, coaxium). On by default for that mode; use --no-batch-summary for full solver output."
+        ),
+    )
+    _bs.add_argument(
+        "--no-batch-summary",
+        dest="batch_summary",
+        action="store_false",
+        help="In batch API mode, show full interleaved solver stdout (legacy).",
+    )
+    parser.set_defaults(batch_summary=None)
     return parser.parse_args()
 
 
 ARGS = parse_args()
 
-if ARGS.all_challenges and not ARGS.from_api:
-    print("--all-challenges requires --from-api.", file=sys.stderr)
+if ARGS.from_api:
+    ARGS.from_planets_api = True
+    ARGS.from_challenge_api = True
+
+if ARGS.all_challenges and not ARGS.from_challenge_api:
+    print(
+        "--all-challenges requires daily challenges from the API "
+        "(--from-challenge-api or --from-api).",
+        file=sys.stderr,
+    )
     sys.exit(2)
-if ARGS.from_api and ARGS.all_challenges:
+if ARGS.all_challenges:
     try:
         rc = run_batch_all_challenges(ARGS)
     except (ValueError, RuntimeError) as exc:
@@ -773,16 +941,24 @@ VERBOSE = ARGS.verbose or (
     os.getenv("TSP_SOLVER_VERBOSE", "").strip().lower() in ("1", "true", "yes", "on")
 )
 LOG_INTERVAL = max(0, ARGS.log_interval)
+QUIET_REPORT = os.getenv("TSP_SOLVER_QUIET_REPORT", "").strip().lower() in ("1", "true", "yes", "on")
 
 
 def solver_log(msg):
     if VERBOSE:
         elapsed = time.monotonic() - _SOLVER_T0
         print(f"[t={elapsed:9.2f}s] {msg}", file=sys.stderr, flush=True)
-if ARGS.from_api:
-    DATA, CHALLENGE = load_from_api(ARGS)
-else:
+if not ARGS.from_planets_api and not ARGS.from_challenge_api:
     DATA, CHALLENGE = load_from_files(ARGS.data_path, ARGS.challenge_path)
+else:
+    if ARGS.from_planets_api:
+        DATA = load_map_from_api(ARGS)
+    else:
+        DATA = load_data_only_from_files(ARGS.data_path)
+    if ARGS.from_challenge_api:
+        CHALLENGE = load_challenge_from_api(ARGS)
+    else:
+        CHALLENGE = load_challenge_only_from_files(ARGS.challenge_path)
 
 planets = {p["id"]: p for p in DATA["planets"]}
 routes = DATA["routes"]
@@ -1169,7 +1345,8 @@ if best_full is None:
                 )
         except OSError as exc:
             print(f"Warning: could not write --dump-result: {exc}", file=sys.stderr)
-    print("No feasible tour."); sys.exit(1)
+    print("No feasible tour.", file=sys.stderr if QUIET_REPORT else sys.stdout)
+    sys.exit(1)
 
 vc = {}
 for p in best_full: vc[p] = vc.get(p, 0) + 1
@@ -1186,61 +1363,66 @@ def name(pid): return planets[pid]["name"]
 _report_cid = CHALLENGE.get("challengeId")
 _report_name = CHALLENGE.get("challengeName")
 
-print("="*70); print("TSP SOLUTION - STRICT (no revisits)"); print("="*70)
-if _report_cid is not None:
-    print(f"ChallengeId: {_report_cid}")
-else:
-    print("ChallengeId: (not set — add to challenge JSON or use --challenge-id for API)")
-if _report_name:
-    print(f"ChallengeName: {_report_name}")
-print(f"\nStart/End:  {name(START)} ({START})")
-print(f"Mandatory:  {[(p, name(p)) for p in mandatory_list] or 'none'}")
-print(f"Forbidden:  {[(p, name(p)) for p in sorted(FORBIDDEN)] or 'none'}")
-print(f"\nBonus planets:")
-for bid in sorted(BONUSES):
-    mark = "TAKEN" if bid in best_bonuses else "skip "
-    print(f"  [{mark}] {name(bid):20s} ({bid:3d})  value={BONUSES[bid]}")
-print(f"\nFull path ({len(best_full)} hops, {len(set(best_full))} unique):")
-for i, p in enumerate(best_full):
-    tag = ""
-    if p == START and (i == 0 or i == len(best_full) - 1):
-        tag = " (START/END)"
-    elif p in MANDATORY:
-        tag = " (mandatory)"
-    elif p in BONUSES:
-        tag = f" (bonus +{BONUSES[p]})"
-    print(f"  {i:3d} {'*' if p in key_set else ' '} {p:4d}  {name(p)}{tag}")
-print()
-print(f"Full path planet ids ({len(best_full)} stops): {json.dumps(best_full, separators=(',', ':'))}")
-print()
-print(f"Gross fuel:    {best_gross:12.2f}")
-print(f"Bonus value:   {sum(BONUSES[b] for b in best_bonuses):12.2f}")
-print(f"NET fuel:      {best_net:12.2f}")
-print(); print("VALIDATION:")
-if forbidden_transit:
-    print(
-        f"  ERROR forbidden in path: {forbidden_transit} "
-        "(solver invariant broken — report as bug)"
-    )
-else:
-    print("  Forbidden in path:    none (required)")
-print(f"  Mandatory missing:    {mandatory_missing if mandatory_missing else 'none'}")
-print(f"  Revisits (non-start): {revisits if revisits else 'none'}")
-print(f"  Start visits:         {vc.get(START, 0)} (expected 2)")
-print()
-print(f"Lower-bound matrix: {t_lb*1000:.1f}ms")
-print(f"B&B search (greedy + DFS): {nodes_explored} nodes explored in {t_bb*1000:.1f}ms")
-print(f"Total solve: {(t_lb+t_bb)*1000:.1f}ms")
-if VERBOSE:
-    solver_log(
-        f"Finished: nodes_explored={nodes_explored:,} best_net={best_net:.2f} "
-        f"LB={t_lb*1000:.1f}ms B&B={t_bb*1000:.1f}ms"
-    )
+if not QUIET_REPORT:
+    print("=" * 70)
+    print("TSP SOLUTION - STRICT (no revisits)")
+    print("=" * 70)
+    if _report_cid is not None:
+        print(f"ChallengeId: {_report_cid}")
+    else:
+        print("ChallengeId: (not set — add to challenge JSON or use --challenge-id for API)")
+    if _report_name:
+        print(f"ChallengeName: {_report_name}")
+    print(f"\nStart/End:  {name(START)} ({START})")
+    print(f"Mandatory:  {[(p, name(p)) for p in mandatory_list] or 'none'}")
+    print(f"Forbidden:  {[(p, name(p)) for p in sorted(FORBIDDEN)] or 'none'}")
+    print(f"\nBonus planets:")
+    for bid in sorted(BONUSES):
+        mark = "TAKEN" if bid in best_bonuses else "skip "
+        print(f"  [{mark}] {name(bid):20s} ({bid:3d})  value={BONUSES[bid]}")
+    print(f"\nFull path ({len(best_full)} hops, {len(set(best_full))} unique):")
+    for i, p in enumerate(best_full):
+        tag = ""
+        if p == START and (i == 0 or i == len(best_full) - 1):
+            tag = " (START/END)"
+        elif p in MANDATORY:
+            tag = " (mandatory)"
+        elif p in BONUSES:
+            tag = f" (bonus +{BONUSES[p]})"
+        print(f"  {i:3d} {'*' if p in key_set else ' '} {p:4d}  {name(p)}{tag}")
+    print()
+    print(f"Full path planet ids ({len(best_full)} stops): {json.dumps(best_full, separators=(',', ':'))}")
+    print()
+    print(f"Gross fuel:    {best_gross:12.2f}")
+    print(f"Bonus value:   {sum(BONUSES[b] for b in best_bonuses):12.2f}")
+    print(f"NET fuel:      {best_net:12.2f}")
+    print()
+    print("VALIDATION:")
+    if forbidden_transit:
+        print(
+            f"  ERROR forbidden in path: {forbidden_transit} "
+            "(solver invariant broken — report as bug)"
+        )
+    else:
+        print("  Forbidden in path:    none (required)")
+    print(f"  Mandatory missing:    {mandatory_missing if mandatory_missing else 'none'}")
+    print(f"  Revisits (non-start): {revisits if revisits else 'none'}")
+    print(f"  Start visits:         {vc.get(START, 0)} (expected 2)")
+    print()
+    print(f"Lower-bound matrix: {t_lb*1000:.1f}ms")
+    print(f"B&B search (greedy + DFS): {nodes_explored} nodes explored in {t_bb*1000:.1f}ms")
+    print(f"Total solve: {(t_lb+t_bb)*1000:.1f}ms")
+    if VERBOSE:
+        solver_log(
+            f"Finished: nodes_explored={nodes_explored:,} best_net={best_net:.2f} "
+            f"LB={t_lb*1000:.1f}ms B&B={t_bb*1000:.1f}ms"
+        )
 
 _dump_ok = (ARGS.dump_result or "").strip()
 if _dump_ok:
     try:
         _cid_dump = resolved_challenge_id(CHALLENGE, ARGS)
+        _solve_s = float(t_lb) + float(t_bb)
         with open(_dump_ok, "w", encoding="utf-8") as f:
             json.dump(
                 {
@@ -1250,6 +1432,10 @@ if _dump_ok:
                     "bestNet": best_net,
                     "bestGross": best_gross,
                     "bonusTaken": list(best_bonuses),
+                    "solveSeconds": round(_solve_s, 6),
+                    "lowerBoundSeconds": round(float(t_lb), 6),
+                    "branchBoundSeconds": round(float(t_bb), 6),
+                    "nodesExplored": nodes_explored,
                 },
                 f,
                 ensure_ascii=False,
@@ -1273,32 +1459,36 @@ if ARGS.calculate_coaxium or ARGS.submit:
         print(f"\nOutSystems: {exc}", file=sys.stderr)
         sys.exit(1)
     if ARGS.calculate_coaxium:
-        print("\n" + "=" * 70)
-        print("OUTSYSTEMS: CalculateCoaxium (final route)")
-        print(f"  ChallengeId: {cid}")
-        print("=" * 70)
+        if not QUIET_REPORT:
+            print("\n" + "=" * 70)
+            print("OUTSYSTEMS: CalculateCoaxium (final route)")
+            print(f"  ChallengeId: {cid}")
+            print("=" * 70)
         try:
             calc = api_calculate_coaxium(base_url, headers, cid, best_full, planets)
         except RuntimeError as exc:
             print(f"Error: {exc}", file=sys.stderr)
             sys.exit(1)
-        print(f"  Success:         {calc['is_success']}")
-        print(f"  Coaxium:         {calc['coaxium']}")
-        print(f"  Feedback:        {calc['feedback_message']}")
-        if calc["time_elapsed_in_seconds"] is not None:
-            print(f"  TimeElapsed(s):  {calc['time_elapsed_in_seconds']}")
+        if not QUIET_REPORT:
+            print(f"  Success:         {calc['is_success']}")
+            print(f"  Coaxium:         {calc['coaxium']}")
+            print(f"  Feedback:        {calc['feedback_message']}")
+            if calc["time_elapsed_in_seconds"] is not None:
+                print(f"  TimeElapsed(s):  {calc['time_elapsed_in_seconds']}")
     if ARGS.submit:
-        print("\n" + "=" * 70)
-        print("OUTSYSTEMS: SubmitChallengeSolution")
-        print(f"  ChallengeId: {cid}")
-        print("=" * 70)
+        if not QUIET_REPORT:
+            print("\n" + "=" * 70)
+            print("OUTSYSTEMS: SubmitChallengeSolution")
+            print(f"  ChallengeId: {cid}")
+            print("=" * 70)
         try:
             sub = api_submit_solution(base_url, headers, cid, best_full, planets)
         except RuntimeError as exc:
             print(f"Error: {exc}", file=sys.stderr)
             sys.exit(1)
-        print(f"  Success:         {sub['is_success']}")
-        print(f"  Coaxium:         {sub['coaxium']}")
-        print(f"  Feedback:        {sub['feedback_message']}")
-        if sub["time_elapsed_in_seconds"] is not None:
-            print(f"  TimeElapsed(s):  {sub['time_elapsed_in_seconds']}")
+        if not QUIET_REPORT:
+            print(f"  Success:         {sub['is_success']}")
+            print(f"  Coaxium:         {sub['coaxium']}")
+            print(f"  Feedback:        {sub['feedback_message']}")
+            if sub["time_elapsed_in_seconds"] is not None:
+                print(f"  TimeElapsed(s):  {sub['time_elapsed_in_seconds']}")
