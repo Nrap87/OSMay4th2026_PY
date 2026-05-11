@@ -1,12 +1,11 @@
 {
-  "startPlanetId": 10,
-  "mandatoryPlanetIds": [101, 174],
-  "forbiddenPlanetIds": [29, 45, 157],
+  "startPlanetId": 25,
+  "mandatoryPlanetIds": [3, 33, 49, 62, 88, 175],
+  "forbiddenPlanetIds": [1, 40, 51, 179],
   "bonusStops": [
-    { "planetId": 33, "value": 150 },
-    { "planetId": 53, "value": 200 },
-    { "planetId": 54, "value": 150 },
-	{ "planetId": 182, "value": 200 },
-  { "planetId": 183, "value": 100 }
+    { "planetId": 43, "value": 100 },
+    { "planetId": 44, "value": 100 },
+    { "planetId": 172, "value": 400 },
+	{ "planetId": 189, "value": 300 }
   ]
 }
