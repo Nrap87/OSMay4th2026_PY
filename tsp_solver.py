@@ -25,6 +25,13 @@ from urllib import request
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 
+try:
+    import numpy as _np
+    from scipy.sparse.csgraph import shortest_path as _scipy_shortest_path
+    _SCIPY_AVAILABLE = True
+except ImportError:
+    _SCIPY_AVAILABLE = False
+
 DEFAULT_BASE_URL = "https://wecode.outsystems.com/StarDelivery_Ngin/rest/StarDeliveryServices"
 
 
@@ -999,14 +1006,17 @@ key_set = set(key_nodes)
 mandatory_set = set(mandatory_list)
 bonus_set = set(bonus_list)
 
-if VERBOSE:
-    _v_cid = CHALLENGE.get("challengeId")
-    _cid_note = f" ChallengeId={_v_cid}" if _v_cid is not None else " ChallengeId=(n/a)"
-    solver_log(
-        f"Problem size: routing_nodes={len(ROUTING_NODES)} allowed_waypoints={len(allowed)} "
-        f"key_nodes={len(key_nodes)} (mandatory={len(mandatory_list)}, bonus={len(bonus_list)})"
-        f"{_cid_note}"
-    )
+# Adjacency list: planet_id -> list of (neighbour_id, cost).
+# Built once from the complete planet graph using the same edge_cost logic.
+# Replaces the O(N^2) inner loop in both Dijkstra variants.
+from collections import defaultdict as _defaultdict
+ADJ: dict = _defaultdict(list)
+_planet_ids = list(planets.keys())
+for _a in _planet_ids:
+    for _b in _planet_ids:
+        if _a == _b:
+            continue
+        ADJ[_a].append((_b, edge_cost(_a, _b)))
 
 best_net = float("inf")
 best_full = None
@@ -1014,53 +1024,69 @@ best_gross = None
 best_bonuses_taken = frozenset()
 nodes_explored = 0
 
+# Cache for dijkstra_avoiding: keyed on (src, dst, frozenset(excluded)).
+# The exclusion set changes at every B&B node but many sibling branches share
+# the same (src, dst, excluded) triple, particularly for the closing leg to START.
+_dijkstra_cache: dict = {}
+
 
 def dijkstra_avoiding(src, dst, excluded):
     """Shortest path src -> dst; `excluded` blocks allowed waypoints (other keys, used).
     Forbidden planets are never used as hops (OutSystems rule).
-    Returns (cost, path_list) or (None, None)."""
+    Returns (cost, path_list) or (None, None).
+    Results are memoised by (src, dst, frozenset(excluded))."""
+    key = (src, dst, frozenset(excluded))
+    cached = _dijkstra_cache.get(key)
+    if cached is not None:
+        return cached
+
     INF = float("inf")
-    distv = {n: INF for n in ROUTING_NODES}
-    prev = {n: None for n in ROUTING_NODES}
+    distv = {}
+    prev = {}
     distv[src] = 0.0
     pq = [(0.0, src)]
     while pq:
         d, u = heapq.heappop(pq)
-        if d > distv[u]: continue
+        if d > distv.get(u, INF): continue
         if u == dst: break
-        for v in ROUTING_NODES:
-            if v == u: continue
+        for v, w in ADJ[u]:
             if v in FORBIDDEN: continue
             if v in excluded and v != dst: continue
-            nd = d + edge_cost(u, v)
-            if nd < distv[v]:
-                distv[v] = nd; prev[v] = u
+            nd = d + w
+            if nd < distv.get(v, INF):
+                distv[v] = nd
+                prev[v] = u
                 heapq.heappush(pq, (nd, v))
-    if distv[dst] == INF: return None, None
+    if distv.get(dst, INF) == INF:
+        _dijkstra_cache[key] = (None, None)
+        return None, None
     path, cur = [dst], dst
     while cur != src:
-        cur = prev[cur]
-        if cur is None: return None, None
+        cur = prev.get(cur)
+        if cur is None:
+            _dijkstra_cache[key] = (None, None)
+            return None, None
         path.append(cur)
     path.reverse()
-    return distv[dst], path
+    result = (distv[dst], path)
+    _dijkstra_cache[key] = result
+    return result
 
 
 def dijkstra_all(src):
     """Dijkstra over the full planet graph, never stepping on forbidden nodes.
     Used for admissible lower bounds under the same routing rule as segments."""
     INF = float("inf")
-    distv = {n: INF for n in ROUTING_NODES}
+    distv = {}
     distv[src] = 0.0
     pq = [(0.0, src)]
     while pq:
         d, u = heapq.heappop(pq)
-        if d > distv[u]: continue
-        for v in ROUTING_NODES:
-            if v == u: continue
+        if d > distv.get(u, INF): continue
+        for v, w in ADJ[u]:
             if v in FORBIDDEN: continue
-            nd = d + edge_cost(u, v)
-            if nd < distv[v]:
+            nd = d + w
+            if nd < distv.get(v, INF):
                 distv[v] = nd
                 heapq.heappush(pq, (nd, v))
     return distv
@@ -1068,21 +1094,53 @@ def dijkstra_all(src):
 
 # Lower-bound pairwise costs between every key node, ignoring revisit
 # constraints. Real routed costs are always >= these.
+#
+# Strategy: scipy.sparse.csgraph.shortest_path computes all N sources in one
+# C-speed call (~50ms fixed overhead on this graph). Per-source Python Dijkstra
+# costs ~4ms each. Break-even is ~12 key nodes, so use scipy for larger
+# problems (more bonus stops) and Dijkstra for smaller ones.
+_SCIPY_THRESHOLD = 12
 t_lb0 = time.time()
 LB = {}
-for ni, src in enumerate(key_nodes):
-    d = dijkstra_all(src)
-    LB[src] = {dst: d[dst] for dst in key_nodes}
+
+if _SCIPY_AVAILABLE and len(key_nodes) >= _SCIPY_THRESHOLD:
+    _pids_sorted = sorted(planets.keys())
+    _pid_to_i = {pid: i for i, pid in enumerate(_pids_sorted)}
+    _N = len(_pids_sorted)
+    _mat = _np.full((_N, _N), _np.inf, dtype=_np.float64)
+    _np.fill_diagonal(_mat, 0.0)
+    for _a in _pids_sorted:
+        if _a in FORBIDDEN:
+            continue
+        for _b, _w in ADJ[_a]:
+            if _b in FORBIDDEN:
+                continue
+            _mat[_pid_to_i[_a], _pid_to_i[_b]] = _w
+    _all_pairs = _scipy_shortest_path(_mat, method="D", directed=False)
+    for src in key_nodes:
+        si = _pid_to_i[src]
+        LB[src] = {dst: float(_all_pairs[si, _pid_to_i[dst]]) for dst in key_nodes}
     if VERBOSE:
-        step = max(1, len(key_nodes) // 10)
-        if len(key_nodes) <= 12 or ni + 1 == len(key_nodes) or (ni + 1) % step == 0:
-            solver_log(
-                f"LB matrix: Dijkstra all-pairs sources {ni + 1}/{len(key_nodes)} "
-                f"(planet id {src})"
-            )
+        solver_log(
+            f"LB matrix: scipy all-pairs ({_N} nodes, {len(key_nodes)} key) "
+            f"in {(time.time()-t_lb0)*1000:.1f}ms"
+        )
+else:
+    for ni, src in enumerate(key_nodes):
+        d = dijkstra_all(src)
+        LB[src] = {dst: d.get(dst, float("inf")) for dst in key_nodes}
+        if VERBOSE:
+            step = max(1, len(key_nodes) // 10)
+            if len(key_nodes) <= 12 or ni + 1 == len(key_nodes) or (ni + 1) % step == 0:
+                solver_log(
+                    f"LB matrix: Dijkstra all-pairs sources {ni + 1}/{len(key_nodes)} "
+                    f"(planet id {src})"
+                )
+
 t_lb = time.time() - t_lb0
 if VERBOSE:
-    solver_log(f"LB matrix done in {t_lb * 1000:.1f} ms")
+    _lb_method = "scipy" if (_SCIPY_AVAILABLE and len(key_nodes) >= _SCIPY_THRESHOLD) else "dijkstra"
+    solver_log(f"LB matrix done in {t_lb * 1000:.1f} ms ({_lb_method})")
 
 
 # Cheapest single LB-edge into each key node (used for bonus-detour bound).
@@ -1094,6 +1152,7 @@ min_in = {k: min(LB[other][k] for other in key_nodes if other != k) for k in key
 # This is admissible (LB <= real), so the TSP-on-LB <= real-routed-tour.
 # Memoised by (current, frozenset(remaining)).
 _hk_cache = {}
+
 
 def hk_lb(current, remaining):
     """Min cost to visit every node in `remaining` exactly once starting from
@@ -1114,25 +1173,80 @@ def hk_lb(current, remaining):
     return best
 
 
-def lower_bound(current, visited_mandatory, current_cost, bonus_collected_value):
-    """Tight admissible lower bound on final net cost.
-
-    Uses Held-Karp on the LB matrix for the mandatory traversal cost.
-    For unvisited bonuses: each could save its `value` only if visited, but
-    visiting requires at least 2 * min_in[bonus] of detour cost. So the
-    bonus's *maximum possible saving* is max(0, value - 2 * min_in[bonus]).
-    Subtract that from the bound. Still admissible (overstates savings is
-    impossible because real saving <= this)."""
-    remaining_m = mandatory_set - visited_mandatory
-    traversal_lb = hk_lb(current, frozenset(remaining_m))
-
-    # Best-case extra savings from remaining bonuses
-    extra_bonus_savings = sum(BONUSES[b] for b in bonus_set if b not in visited_mandatory)
-
-    return current_cost + traversal_lb - bonus_collected_value - extra_bonus_savings
+# Bitmask indexing for the tight admissible lower bound below.
+_M_INDEX = {m: i for i, m in enumerate(mandatory_list)}
+_B_INDEX = {b: i for i, b in enumerate(bonus_list)}
+_FULL_M_MASK = (1 << len(mandatory_list)) - 1
 
 
-def search(current, path_so_far, used_planets, segments, current_cost,
+# DP on the LB matrix: f(current, vm_mask, vb_mask) = minimum LB-net cost to
+# complete a tour from `current` that visits every still-unvisited mandatory
+# and any *optimal subset* of still-unvisited bonuses, returning to START.
+# "Net" here means sum of LB segment costs minus the values of bonuses picked
+# along the way. Because LB[a][b] <= the real `dijkstra_avoiding` cost under
+# any exclusion set, and bonus values are exact, this is a sound lower bound
+# on the real future net contribution. State space is len(key_nodes) * 2^|M|
+# * 2^|B|, which is tiny for typical instances (<= ~11 * 64 * 16).
+_f_cache: dict = {}
+
+
+def _f_lb(current, vm_mask, vb_mask):
+    key = (current, vm_mask, vb_mask)
+    cached = _f_cache.get(key)
+    if cached is not None:
+        return cached
+    if vm_mask == _FULL_M_MASK:
+        best = LB[current][START]
+    else:
+        best = float("inf")
+    for i, m in enumerate(mandatory_list):
+        if vm_mask & (1 << i):
+            continue
+        c = LB[current][m] + _f_lb(m, vm_mask | (1 << i), vb_mask)
+        if c < best:
+            best = c
+    for j, b in enumerate(bonus_list):
+        if vb_mask & (1 << j):
+            continue
+        c = LB[current][b] - BONUSES[b] + _f_lb(b, vm_mask, vb_mask | (1 << j))
+        if c < best:
+            best = c
+    _f_cache[key] = best
+    return best
+
+
+def lower_bound(current, visited_mandatory, visited_bonuses, current_cost, bonus_collected_value):
+    """Admissible *and tight* lower bound on final net cost.
+
+    Uses a DP on the LB matrix that already accounts for the optimal subset
+    and ordering of remaining bonuses (with their values subtracted at the
+    point of insertion). Because:
+      * each LB edge <= the real segment cost under any exclusion set, and
+      * bonus values are exact and only credited if the bonus is in the path,
+    the DP value is <= the real minimum future net contribution. We then add
+    `current_cost - bonus_collected_value` (already realised) to get a sound
+    lower bound on the *final* net.
+
+    Previous formulations were either inadmissible (`2*min_in[b]` detour
+    assumption was not a valid floor on insertion cost) or admissible but
+    very loose (subtract sum of all unvisited bonus values, regardless of
+    where they fit in the tour). This one is provably admissible *and* much
+    tighter, which dramatically reduces B&B node count.
+    """
+    vm_mask = 0
+    for m in visited_mandatory:
+        idx = _M_INDEX.get(m)
+        if idx is not None:
+            vm_mask |= 1 << idx
+    vb_mask = 0
+    for b in visited_bonuses:
+        idx = _B_INDEX.get(b)
+        if idx is not None:
+            vb_mask |= 1 << idx
+    return current_cost - bonus_collected_value + _f_lb(current, vm_mask, vb_mask)
+
+
+def search(current, used_planets, segments, current_cost,
            visited_mandatory, visited_bonuses, bonus_value):
     """DFS with pruning. `segments` is list of segment paths so far."""
     global best_net, best_full, best_gross, best_bonuses_taken, nodes_explored
@@ -1145,7 +1259,7 @@ def search(current, path_so_far, used_planets, segments, current_cost,
         )
 
     # Optimistic prune
-    if lower_bound(current, visited_mandatory, current_cost, bonus_value) >= best_net:
+    if lower_bound(current, visited_mandatory, visited_bonuses, current_cost, bonus_value) >= best_net:
         return
 
     remaining_m = mandatory_set - visited_mandatory
@@ -1215,7 +1329,7 @@ def search(current, path_so_far, used_planets, segments, current_cost,
             new_vb = visited_bonuses | {nxt}
             new_bv = bonus_value + BONUSES[nxt]
 
-        search(nxt, path_so_far, new_used, new_segments, new_cost,
+        search(nxt, new_used, new_segments, new_cost,
                new_vm, new_vb, new_bv)
 
 
@@ -1247,10 +1361,12 @@ def greedy_seed():
         remaining.discard(nxt)
         cur = nxt
     excluded = set(used)
-    for kn in bonus_set: excluded.add(kn)
+    for kn in bonus_set:
+        excluded.add(kn)
     excluded.discard(cur); excluded.discard(START)
     cost, seg = dijkstra_avoiding(cur, START, excluded)
-    if seg is None: return
+    if seg is None:
+        return
     total += cost
     full.extend(seg[1:])
     best_net = total
@@ -1276,6 +1392,15 @@ def calculate_coaxium_for_route_ids(route_ids):
         return None, str(exc)
     return res, None
 
+
+if VERBOSE:
+    _v_cid = CHALLENGE.get("challengeId")
+    _cid_note = f" ChallengeId={_v_cid}" if _v_cid is not None else " ChallengeId=(n/a)"
+    solver_log(
+        f"Problem size: routing_nodes={len(ROUTING_NODES)} allowed_waypoints={len(allowed)} "
+        f"key_nodes={len(key_nodes)} (mandatory={len(mandatory_list)}, bonus={len(bonus_list)})"
+        f"{_cid_note}"
+    )
 
 if VERBOSE:
     solver_log("Greedy seed (mandatory only, no bonuses)...")
@@ -1323,7 +1448,7 @@ if VERBOSE:
         solver_log(f"Branch-and-bound search (progress every {LOG_INTERVAL:,} nodes)")
     else:
         solver_log("Branch-and-bound search (--log-interval 0: no periodic node logs)")
-search(START, [START], set(), [[START]], 0.0, frozenset(), frozenset(), 0.0)
+search(START, set(), [[START]], 0.0, frozenset(), frozenset(), 0.0)
 
 best_bonuses = tuple(sorted(best_bonuses_taken))
 t_bb = time.time() - t_bb0
@@ -1409,13 +1534,16 @@ if not QUIET_REPORT:
     print(f"  Revisits (non-start): {revisits if revisits else 'none'}")
     print(f"  Start visits:         {vc.get(START, 0)} (expected 2)")
     print()
-    print(f"Lower-bound matrix: {t_lb*1000:.1f}ms")
+    _lb_method_label = "scipy" if (_SCIPY_AVAILABLE and len(key_nodes) >= _SCIPY_THRESHOLD) else "dijkstra"
+    print(f"Lower-bound matrix: {t_lb*1000:.1f}ms ({_lb_method_label}, {len(key_nodes)} key nodes)")
+    _cache_total = len(_dijkstra_cache)
+    print(f"Dijkstra cache:     {_cache_total} unique (src,dst,excluded) entries")
     print(f"B&B search (greedy + DFS): {nodes_explored} nodes explored in {t_bb*1000:.1f}ms")
     print(f"Total solve: {(t_lb+t_bb)*1000:.1f}ms")
     if VERBOSE:
         solver_log(
             f"Finished: nodes_explored={nodes_explored:,} best_net={best_net:.2f} "
-            f"LB={t_lb*1000:.1f}ms B&B={t_bb*1000:.1f}ms"
+            f"LB={t_lb*1000:.1f}ms B&B={t_bb*1000:.1f}ms dijkstra_cache={_cache_total}"
         )
 
 _dump_ok = (ARGS.dump_result or "").strip()
